@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.minishop.repository.mybatis.ItemMapper">
+
+    <insert id="save" parameterType="item" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ITEM(name, price, stock_quantity)
+        VALUES(#{name}, #{price}, #{stock_quantity}
+    </insert>
+
+</mapper>

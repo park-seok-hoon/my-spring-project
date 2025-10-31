@@ -1,4 +1,4 @@
-package com.minishop.mini_shop;
+package com.minishop;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
