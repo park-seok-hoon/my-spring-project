@@ -1,9 +1,11 @@
 package com.minishop;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
+@MapperScan(basePackages = "com.minishop.repository.mybatis")
 public class MiniShopApplication {
 
 	public static void main(String[] args) {

@@ -1,6 +1,6 @@
 package com.minishop.repository.mybatis;
 
-import com.minishop.domain.Item;
+import com.minishop.domain.Items;
 import com.minishop.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -14,15 +14,14 @@ public class ItemRepositoryMyBatis implements ItemRepository {
     private final ItemMapper itemMapper;
 
     @Override
-    public Item save(Item item) {
+    public Items save(Items item) {
         itemMapper.save(item);
         return item;
     }
 
     @Override
-    public Item update(Item item) {
-        itemMapper.update(item);
-        return item;
+    public int update(Long id, Items items) {
+        return itemMapper.update(id,items);
     }
 
     @Override
@@ -31,12 +30,14 @@ public class ItemRepositoryMyBatis implements ItemRepository {
     }
 
     @Override
-    public Item findById(Long id) {
+    public Items findById(Long id) {
         return itemMapper.findById(id);
     }
 
     @Override
-    public List<Item> findAll() {
+    public List<Items> findAll() {
         return itemMapper.findAll();
     }
+
+
 }

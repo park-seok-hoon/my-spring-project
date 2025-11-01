@@ -1,13 +1,14 @@
 package com.minishop.repository;
 
-import com.minishop.domain.Item;
+import com.minishop.domain.Items;
 
 import java.util.List;
 
 public interface ItemRepository {
-    Item save(Item item);
-    Item update(Item item);
+    Items save(Items item);
+    int update(Long id, Items items);
     void delete(Long id);
-    Item findById(Long id);
-    List<Item> findAll();
+    Items findById(Long id);
+    List<Items> findAll();
+
 }

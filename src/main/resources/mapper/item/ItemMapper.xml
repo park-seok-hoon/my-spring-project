@@ -2,11 +2,34 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.minishop.repository.mybatis.ItemMapper">
 
-    <insert id="save" parameterType="item" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO ITEM(name, price, stock_quantity)
-        VALUES(#{name}, #{price}, #{stock_quantity}
+<mapper namespace="com.minishop.repository.mybatis.ItemMapper">
+    <!-- SELECT -->
+    <select id="findById" resultType="Items">
+        select * from items where id = #{id}
+    </select>
+
+    <select id="findAll" resultType="Items">
+        select * from items
+    </select>
+
+    <!-- INSERT -->
+    <insert id="save" parameterType="Items" useGeneratedKeys="true" keyProperty="id">
+        insert into items (name, price, stock_quantity)
+        VALUES (#{name}, #{price}, #{stockQuantity})
     </insert>
 
+    <!-- UPDATE -->
+    <update id="update">
+        update items
+        set name = #{item.name},
+            price =#{item.price},
+            stock_quantity = #{item.stockQuantity}
+        where id = #{id}
+    </update>
+
+    <!-- delete -->
+    <delete id="delete">
+        delete from items where id = #{id}
+    </delete>
 </mapper>
