@@ -40,7 +40,7 @@ public class ItemController {
 
     //update
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateItem(@PathVariable("id") Long id, @RequestBody Items items) {
+    public ResponseEntity<?> updateItem(@PathVariable("id") Long id, @RequestBody Items items) {
         items.setId(id);
         itemService.update(id,items);
         int updateRows = itemService.update(id,items);
@@ -52,16 +52,18 @@ public class ItemController {
         }
 
         //성공 시
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(HttpStatus.OK).body("아이템 변경 완료");
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteItem(@PathVariable("id") Long id) {
+    public ResponseEntity<?> deleteItem(@PathVariable("id") Long id) {
         try{
            itemService.delete(id);
-            return ResponseEntity.noContent().build();  //성공 (204)
+           return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body("상품이 삭제되었습니다."); // 200 OK
         }catch(RuntimeException e) {
-            return ResponseEntity.notFound().build();   //실패 (예외 발생시 404)
+            return ResponseEntity.notFound().build();   //실패 204
         }
     }
 
@@ -69,9 +71,9 @@ public class ItemController {
     public ResponseEntity<?> getById(@PathVariable("id") Long id) {
        try {
            Items item = itemService.findById(id);
-           return ResponseEntity.ok(item);
+           return ResponseEntity.ok(item); //200 OK
        } catch (IllegalArgumentException e) {
-           return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+           return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); //실패 404
        }
     }
 
@@ -83,14 +85,13 @@ public class ItemController {
             if( items.isEmpty()) {
                 return ResponseEntity
                         .status(HttpStatus.OK)
-                        .body("조회된 상품이 없습니다."); //204 no content
+                        .body("조회된 상품이 없습니다."); // 200 OK
             }
             return ResponseEntity.ok(items);
         } catch (Exception e) {
-            //예외 발생 시 500 Internal Server Error
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("상품 목록 조회 중 오류 발생" + e.getMessage());
+                    .body("상품 목록 조회 중 오류 발생" + e.getMessage());  //예외 발생 시 500 Internal Server Error
         }
     }
 

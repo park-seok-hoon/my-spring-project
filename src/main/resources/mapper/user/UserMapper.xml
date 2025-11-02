@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.minishop.repository.mybatis.UserMapper">
+    <!-- SELECT -->
+    <select id="findAllUsers" resultType="Users">
+        select * from users;
+    </select>
+
+    <select id="findUserById" resultType="Users">
+        select * from users where id = #{id}
+    </select>
+
+    <!-- INSERT -->
+    <insert id="insertUser" parameterType="Users" useGeneratedKeys="true" keyProperty="id">
+        insert into users (username, password, email)
+        VALUES (#{username}, #{password}, #{email})
+    </insert>
+
+    <!-- UPDATE -->
+    <update id="updateUser">
+        update users
+        set username = #{user.username},
+        password =#{user.password},
+        email = #{user.email}
+        where id = #{id}
+    </update>
+
+    <!-- delete -->
+    <delete id="deleteUser">
+        delete from users where id = #{id}
+    </delete>
+</mapper>
