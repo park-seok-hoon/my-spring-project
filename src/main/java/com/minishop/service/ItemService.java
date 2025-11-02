@@ -19,9 +19,11 @@ public class ItemService {
     }
 
 
-
     public void delete(Long id) {
-        itemRepository.delete(id);
+        int deletedRows =  itemRepository.delete(id);
+        if(deletedRows == 0)
+            throw new RuntimeException("삭제할 아이템이 없습니다.");
+
     }
 
     public Items findById(Long id) {

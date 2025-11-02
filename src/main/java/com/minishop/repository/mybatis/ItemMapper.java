@@ -11,7 +11,7 @@ public interface ItemMapper {
 
     Items findById(Long id); //READ
     List<Items> findAll(); //READ
-    void save(Items item); //CREATE
-    int update(@Param("id") Long id,@Param("item") Items item); //UPDATE
-    void delete(Long id); //DELETE
+    void saveItem(Items item); //CREATE
+    int updateItem(@Param("id") Long id,@Param("item") Items item); //UPDATE
+    int deleteItem(Long id); //DELETE
 }

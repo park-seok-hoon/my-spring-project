@@ -15,18 +15,18 @@ public class ItemRepositoryMyBatis implements ItemRepository {
 
     @Override
     public Items save(Items item) {
-        itemMapper.save(item);
+        itemMapper.saveItem(item);
         return item;
     }
 
     @Override
     public int update(Long id, Items items) {
-        return itemMapper.update(id,items);
+        return itemMapper.updateItem(id,items);
     }
 
     @Override
-    public void delete(Long id) {
-        itemMapper.delete(id);
+    public int delete(Long id) {
+        return itemMapper.deleteItem(id);
     }
 
     @Override

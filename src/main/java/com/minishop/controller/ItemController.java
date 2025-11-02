@@ -5,8 +5,13 @@ import com.minishop.domain.Items;
 import com.minishop.service.ItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/items")
@@ -16,13 +21,26 @@ public class ItemController {
 
     private final ItemService itemService;
 
+    //insert
     @PostMapping
-    public Items create(@RequestBody Items item) {
-        return itemService.save(item);
+    public ResponseEntity<Items> createItem(@RequestBody Items item) {
+        try{
+            Items savedItem =itemService.save(item);
+
+            URI location = ServletUriComponentsBuilder
+                    .fromCurrentRequest()
+                    .path("/{id}")
+                    .buildAndExpand(savedItem.getId())
+                    .toUri();
+            return ResponseEntity.created(location).body(savedItem);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
+    //update
     @PutMapping("/{id}")
-    public ResponseEntity<Void> update(@PathVariable("id") Long id, @RequestBody Items items) {
+    public ResponseEntity<Void> updateItem(@PathVariable("id") Long id, @RequestBody Items items) {
         items.setId(id);
         itemService.update(id,items);
         int updateRows = itemService.update(id,items);
@@ -35,8 +53,47 @@ public class ItemController {
 
         //성공 시
         return ResponseEntity.noContent().build();
-
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteItem(@PathVariable("id") Long id) {
+        try{
+           itemService.delete(id);
+            return ResponseEntity.noContent().build();  //성공 (204)
+        }catch(RuntimeException e) {
+            return ResponseEntity.notFound().build();   //실패 (예외 발생시 404)
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable("id") Long id) {
+       try {
+           Items item = itemService.findById(id);
+           return ResponseEntity.ok(item);
+       } catch (IllegalArgumentException e) {
+           return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+       }
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllItems() {
+        try{
+            List<Items> items = itemService.findAll();
+            //아무것도 들어있지 않은 경우
+            if( items.isEmpty()) {
+                return ResponseEntity
+                        .status(HttpStatus.OK)
+                        .body("조회된 상품이 없습니다."); //204 no content
+            }
+            return ResponseEntity.ok(items);
+        } catch (Exception e) {
+            //예외 발생 시 500 Internal Server Error
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("상품 목록 조회 중 오류 발생" + e.getMessage());
+        }
+    }
+
 
 
 

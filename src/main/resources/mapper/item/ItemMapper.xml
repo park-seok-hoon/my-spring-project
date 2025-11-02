@@ -14,13 +14,13 @@
     </select>
 
     <!-- INSERT -->
-    <insert id="save" parameterType="Items" useGeneratedKeys="true" keyProperty="id">
+    <insert id="saveItem" parameterType="Items" useGeneratedKeys="true" keyProperty="id">
         insert into items (name, price, stock_quantity)
         VALUES (#{name}, #{price}, #{stockQuantity})
     </insert>
 
     <!-- UPDATE -->
-    <update id="update">
+    <update id="updateItem">
         update items
         set name = #{item.name},
             price =#{item.price},
@@ -29,7 +29,7 @@
     </update>
 
     <!-- delete -->
-    <delete id="delete">
+    <delete id="deleteItem">
         delete from items where id = #{id}
     </delete>
 </mapper>
