@@ -38,6 +38,12 @@ public class ItemController {
         }
     }
 
+    //예외
+    @GetMapping("/error-ex")
+    public void errorEx() {
+        throw new RuntimeException("예외 발생!");
+    }
+
     //update
     @PutMapping("/{id}")
     public ResponseEntity<?> updateItem(@PathVariable("id") Long id, @RequestBody Items items) {
