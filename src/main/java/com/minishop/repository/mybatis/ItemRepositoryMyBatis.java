@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -30,13 +31,19 @@ public class ItemRepositoryMyBatis implements ItemRepository {
     }
 
     @Override
-    public Items findById(Long id) {
-        return itemMapper.findById(id);
+    public Optional<Items> findById(Long id) {
+        return Optional.ofNullable(itemMapper.findById(id));
+
     }
 
     @Override
     public List<Items> findAll() {
         return itemMapper.findAll();
+    }
+
+    @Override
+    public Items findByName(String itemName) {
+        return itemMapper.findByName(itemName);
     }
 
 

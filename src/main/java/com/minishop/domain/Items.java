@@ -14,4 +14,5 @@ public class Items {
     private String name;
     private int price;
     private int stockQuantity; //재고 수량
+
 }

@@ -5,12 +5,19 @@
 
 <mapper namespace="com.minishop.repository.mybatis.ItemMapper">
     <!-- SELECT -->
-    <select id="findById" resultType="Items">
-        select * from items where id = #{id}
+    <select id="findById" parameterType="long" resultType="Items">
+        SELECT id, name, price, stock_quantity
+        FROM items
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByName" resultType="Items">
+        select * from items where name = #{itemName}
     </select>
 
     <select id="findAll" resultType="Items">
-        select * from items
+        SELECT id, name, price, stock_quantity
+        FROM items
     </select>
 
     <!-- INSERT -->
