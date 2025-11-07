@@ -15,6 +15,11 @@
         select * from items where name = #{itemName}
     </select>
 
+    <select id="findAll" resultType="Items">
+        SELECT id, name, price, stock_quantity
+        FROM items
+    </select>
+
     <!-- INSERT -->
     <insert id="saveItem" parameterType="Items" useGeneratedKeys="true" keyProperty="id">
         insert into items (name, price, stock_quantity)
