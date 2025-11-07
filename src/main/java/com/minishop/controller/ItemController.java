@@ -1,11 +1,12 @@
 package com.minishop.controller;
 
-
 import com.minishop.domain.Items;
+import com.minishop.dto.item.ItemCreateRequest;
+import com.minishop.dto.item.ItemUpdateRequest;
 import com.minishop.service.ItemService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -13,95 +14,87 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 
-@RestController
-@RequestMapping("/items")
-@RequiredArgsConstructor
 @Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/items")
 public class ItemController {
 
     private final ItemService itemService;
 
-    //insert
+    /**
+     * ✅ 상품 등록 (Create)
+     * 예외는 ItemService에서 AppException으로 던지고,
+     * GlobalExceptionHandler에서 처리됨.
+     */
     @PostMapping
-    public ResponseEntity<Items> createItem(@RequestBody Items item) {
-        try{
-            Items savedItem =itemService.save(item);
+    public ResponseEntity<Items> createItem(@Valid @RequestBody ItemCreateRequest request) {
 
-            URI location = ServletUriComponentsBuilder
-                    .fromCurrentRequest()
-                    .path("/{id}")
-                    .buildAndExpand(savedItem.getId())
-                    .toUri();
-            return ResponseEntity.created(location).body(savedItem);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        Items saved = new Items();
+        saved.setName(request.getName());
+        saved.setPrice(request.getPrice());
+        saved.setStockQuantity(request.getStockQuantity());
+
+        Items newItem = itemService.save(saved);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(newItem.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(newItem);
     }
 
-    //예외
+    /**
+     * ✅ 상품 전체 조회 (Read All)
+     * 상품이 없으면 AppException에서 ITEM_NOT_FOUND 발생
+     */
+    @GetMapping
+    public ResponseEntity<List<Items>> getAllItems() {
+        List<Items> items = itemService.findAll();
+        return ResponseEntity.ok(items); // 예외 발생 시 GlobalExceptionHandler에서 처리
+    }
+
+    /**
+     * ✅ 상품 단건 조회 (Read One)
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<Items> getItem(@PathVariable Long id) {
+        Items item = itemService.findById(id);
+        return ResponseEntity.ok(item);
+    }
+
+    /**
+     * ✅ 상품 수정 (Update)
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateItem(@PathVariable Long id, @Valid @RequestBody ItemUpdateRequest request) {
+        Items updatedItem = new Items();
+        updatedItem.setId(id);
+        updatedItem.setName(request.getName());
+        updatedItem.setPrice(request.getPrice());
+        updatedItem.setStockQuantity(request.getStockQuantity());
+
+        int updateCount = itemService.update(id, updatedItem);
+        log.info("수정된 행 수 = {}", updateCount);
+
+        return ResponseEntity.ok("상품이 성공적으로 수정되었습니다.");
+    }
+
+    /**
+     * ✅ 상품 삭제 (Delete)
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteItem(@PathVariable Long id) {
+        itemService.delete(id);
+        return ResponseEntity.ok("상품이 성공적으로 삭제되었습니다.");
+    }
+
+    /**
+     * ✅ 테스트용 예외 (임의 호출)
+     */
     @GetMapping("/error-ex")
     public void errorEx() {
-        throw new RuntimeException("예외 발생!");
+        throw new RuntimeException("테스트용 예외 발생!");
     }
-
-    //update
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateItem(@PathVariable("id") Long id, @RequestBody Items items) {
-        items.setId(id);
-        itemService.update(id,items);
-        int updateRows = itemService.update(id,items);
-        log.info("바뀐 행의 수= {}", updateRows);
-
-        //실패 시
-        if(updateRows == 0){
-            return ResponseEntity.notFound().build();
-        }
-
-        //성공 시
-        return ResponseEntity.status(HttpStatus.OK).body("아이템 변경 완료");
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteItem(@PathVariable("id") Long id) {
-        try{
-           itemService.delete(id);
-           return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body("상품이 삭제되었습니다."); // 200 OK
-        }catch(RuntimeException e) {
-            return ResponseEntity.notFound().build();   //실패 204
-        }
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getById(@PathVariable("id") Long id) {
-       try {
-           Items item = itemService.findById(id);
-           return ResponseEntity.ok(item); //200 OK
-       } catch (IllegalArgumentException e) {
-           return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); //실패 404
-       }
-    }
-
-    @GetMapping
-    public ResponseEntity<?> getAllItems() {
-        try{
-            List<Items> items = itemService.findAll();
-            //아무것도 들어있지 않은 경우
-            if( items.isEmpty()) {
-                return ResponseEntity
-                        .status(HttpStatus.OK)
-                        .body("조회된 상품이 없습니다."); // 200 OK
-            }
-            return ResponseEntity.ok(items);
-        } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("상품 목록 조회 중 오류 발생" + e.getMessage());  //예외 발생 시 500 Internal Server Error
-        }
-    }
-
-
-
-
 }
