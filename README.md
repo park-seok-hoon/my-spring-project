@@ -47,12 +47,14 @@
 ---
 
 ## 📁 프로젝트 구조
+```
 com.minishop
 ┣ controller → 요청 처리 및 HTTP 응답 반환
 ┣ service → 비즈니스 로직 및 예외 처리 (Service Layer 중심 구조)
 ┣ repository → MyBatis Mapper 연동
 ┣ domain → Entity 클래스
 ┗ exception → 공통 예외 클래스 및 GlobalExceptionHandler
+```
 
 ## ✅ 프로젝트 목적
 
