@@ -11,19 +11,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemService {
 
-    //인터페이스에 대해서만 알고 있어도 스프링에서 자동으로 해당 구현체로 연결해줌으로 신경을 쓰지 않아도 됨.
     private final ItemRepository itemRepository;
 
     public Items save(Items item) {
         return itemRepository.save(item);
-    }
-
-
-    public void delete(Long id) {
-        int deletedRows =  itemRepository.delete(id);
-        if(deletedRows == 0)
-            throw new RuntimeException("삭제할 아이템이 없습니다.");
-
     }
 
     public Items findById(Long id) {
@@ -34,8 +25,11 @@ public class ItemService {
         return itemRepository.findAll();
     }
 
+    public int update(Long id, Items item) {
+        return itemRepository.update(id, item);
+    }
 
-    public int update(Long id, Items items) {
-        return itemRepository.update(id, items);
+    public int delete(Long id) {
+        return itemRepository.delete(id);
     }
 }
