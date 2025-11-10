@@ -1,6 +1,7 @@
 package com.minishop.exception;
 
 
+import com.minishop.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +18,14 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(AppException.class)
-    public ResponseEntity<ErrorResult> handleAppException(AppException e) {
-        log.warn("[AppException] {}", e.getMessage());
-        ErrorResult error = new ErrorResult(e.getErrorCode().name(), e.getMessage());
-        return ResponseEntity.status(e.getStatus()).body(error);
+    public ResponseEntity<ApiResponse<Void>> handleAppException(AppException e) {
+        ErrorCode errorCode = e.getErrorCode();
+
+        log.warn("[AppException] code={}, message={}", errorCode.name(), errorCode.getMessage());
+
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ApiResponse.error(errorCode.name(), e.getMessage()));
     }
 
     // 그 외 모든 예외 (시스템 에러)
