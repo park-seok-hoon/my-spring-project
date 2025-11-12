@@ -13,4 +13,5 @@ public interface UserMapper {
     void insertUser(Users user); //CREATE
     int updateUser(@Param("id")Long id, @Param("user")Users user); //UPDATE
     int deleteUser(Long id); //DELETE
+    Users findUserByEmail(String email);
 }

@@ -3,14 +3,14 @@ package com.minishop.dto.item;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
  * 상품 등록(Create) 시 클라이언트 요청을 받는 DTO
  */
-@Getter
-@Setter
+@Data
 public class ItemCreateRequest {
 
     @NotBlank(message = "상품명은 필수입니다.")

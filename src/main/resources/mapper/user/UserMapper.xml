@@ -13,6 +13,10 @@
         select * from users where id = #{id}
     </select>
 
+    <select id="findUserByEmail" resultType="Users">
+        SELECT * FROM users WHERE email = #{email}
+    </select>
+
     <!-- INSERT -->
     <insert id="insertUser" parameterType="Users" useGeneratedKeys="true" keyProperty="id">
         insert into users (username, password, email)

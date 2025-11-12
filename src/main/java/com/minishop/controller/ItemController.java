@@ -3,6 +3,7 @@ package com.minishop.controller;
 import com.minishop.domain.Items;
 import com.minishop.dto.item.ItemCreateRequest;
 import com.minishop.dto.item.ItemUpdateRequest;
+import com.minishop.response.ApiResponse;
 import com.minishop.service.ItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,21 +29,9 @@ public class ItemController {
      * GlobalExceptionHandler에서 처리됨.
      */
     @PostMapping
-    public ResponseEntity<Items> createItem(@Valid @RequestBody ItemCreateRequest request) {
-
-        Items saved = new Items();
-        saved.setName(request.getName());
-        saved.setPrice(request.getPrice());
-        saved.setStockQuantity(request.getStockQuantity());
-
-        Items newItem = itemService.save(saved);
-
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(newItem.getId())
-                .toUri();
-
-        return ResponseEntity.created(location).body(newItem);
+    public ResponseEntity<ApiResponse<Items>> createItem(@Valid @RequestBody ItemCreateRequest request) {
+        Items newItem = itemService.save(request);
+        return ResponseEntity.ok(ApiResponse.success("상품 등록 성공", newItem));
     }
 
     /**
@@ -50,44 +39,36 @@ public class ItemController {
      * 상품이 없으면 AppException에서 ITEM_NOT_FOUND 발생
      */
     @GetMapping
-    public ResponseEntity<List<Items>> getAllItems() {
+    public ResponseEntity<ApiResponse<List<Items>>> getAllItems() {
         List<Items> items = itemService.findAll();
-        return ResponseEntity.ok(items); // 예외 발생 시 GlobalExceptionHandler에서 처리
+        return ResponseEntity.ok(ApiResponse.success("상품 목록 조회 성공",items)); // 예외 발생 시 GlobalExceptionHandler에서 처리
     }
 
     /**
      * ✅ 상품 단건 조회 (Read One)
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Items> getItem(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Items>> getItem(@PathVariable Long id) {
         Items item = itemService.findById(id);
-        return ResponseEntity.ok(item);
+        return ResponseEntity.ok(ApiResponse.success("상품 조회 성공",item));
     }
 
     /**
      * ✅ 상품 수정 (Update)
      */
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateItem(@PathVariable Long id, @Valid @RequestBody ItemUpdateRequest request) {
-        Items updatedItem = new Items();
-        updatedItem.setId(id);
-        updatedItem.setName(request.getName());
-        updatedItem.setPrice(request.getPrice());
-        updatedItem.setStockQuantity(request.getStockQuantity());
-
-        int updateCount = itemService.update(id, updatedItem);
-        log.info("수정된 행 수 = {}", updateCount);
-
-        return ResponseEntity.ok("상품이 성공적으로 수정되었습니다.");
+    public ResponseEntity<ApiResponse<Items>> updateItem(@PathVariable Long id, @Valid @RequestBody ItemUpdateRequest updateRequest) {
+        Items updatedItem= itemService.update(id, updateRequest);
+        return ResponseEntity.ok(ApiResponse.success("상품이 성공적으로 수정되었습니다.", updatedItem));
     }
 
     /**
      * ✅ 상품 삭제 (Delete)
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteItem(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteItem(@PathVariable Long id) {
         itemService.delete(id);
-        return ResponseEntity.ok("상품이 성공적으로 삭제되었습니다.");
+        return ResponseEntity.ok(ApiResponse.success("상품 삭제 성공",null));
     }
 
     /**
