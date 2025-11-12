@@ -1,11 +1,11 @@
 package com.minishop.repository.mybatis;
 
-
 import com.minishop.domain.Users;
+import com.minishop.exception.AppException;
+import com.minishop.exception.ErrorCode;
 import com.minishop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 
 @Repository
@@ -21,8 +21,15 @@ public class UserRepositoryMyBatis implements UserRepository {
     }
 
     @Override
-    public int update(Long id, Users user) {
-        return userMapper.updateUser(id, user);
+    public Users update(Long id, Users user) {
+        int result = userMapper.updateUser(id, user);
+
+        if (result == 0) {
+            throw new AppException(ErrorCode.USER_NOT_FOUND, "업데이트 대상이 존재하지 않습니다.");
+        }
+
+        // ✅ DB에서 수정된 최신 데이터 다시 조회해서 반환
+        return userMapper.findUserById(id);
     }
 
     @Override
@@ -38,5 +45,10 @@ public class UserRepositoryMyBatis implements UserRepository {
     @Override
     public List<Users> findAll() {
         return userMapper.findAllUsers();
+    }
+
+    @Override
+    public Users findByEmail(String email) {
+        return userMapper.findUserByEmail(email);
     }
 }

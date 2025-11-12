@@ -18,11 +18,5 @@ public class AppException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
-    public HttpStatus getStatus() {
-        return this.errorCode.getStatus();
-    }
-
-    public ErrorCode getErrorCode() {
-        return errorCode;
-    }
 }
+

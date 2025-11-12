@@ -68,7 +68,6 @@ public class ItemController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteItem(@PathVariable Long id) {
         itemService.delete(id);
-
         return ResponseEntity.ok(ApiResponse.success("상품 삭제 성공",null));
     }
 
