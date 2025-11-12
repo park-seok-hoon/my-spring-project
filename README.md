@@ -20,17 +20,22 @@
 
 ## 📚 브랜치 목록
 
-| 브랜치명 | 설명 |
-|-----------|------|
-| [`controller-exception`](https://github.com/park-seok-hoon/my-spring-project/tree/controller-exception) | Controller 계층에서 예외 처리한 초기 버전 |
-| [`service-exception`](https://github.com/park-seok-hoon/my-spring-project/tree/service-exception) | Service 계층으로 예외 처리 및 검증 책임을 이전한 개선 버전 (**최신**) |
+| 브랜치명                                                                                                                      | 설명                                             |
+| ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| [`controller-exception`](https://github.com/park-seok-hoon/my-spring-project/tree/controller-exception)                   | Controller 계층에서 예외 처리한 초기 버전                   |
+| [`service-exception`](https://github.com/park-seok-hoon/my-spring-project/tree/service-exception)                         | Service 계층으로 예외 처리 및 검증 책임을 이전한 개선 버전  |
+| [`refactor/unified-api-response`](https://github.com/park-seok-hoon/my-spring-project/tree/refactor/unified-api-response) | API 응답 구조 통일 및 Item,user 모듈 리팩토링 버전    (**최신**)        |
+
 
 ---
 
 ## 🧩 개선 히스토리
-| 날짜 | 변경 내용 | 설명 |
-|------|------------|------|
-| **2025.11.07** | 예외 처리 위치를 **Controller → Service** 로 이동 | 실무에서는 Controller가 요청/응답만 담당하고, Service가 비즈니스 로직 단위 예외를 관리하는 구조를 사용함. 따라서 실무 구조에 맞게 개선함. |
+| 날짜             | 변경 내용                                  | 상세 설명                                                                                                                                       |
+| -------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **2025.11.07** | 예외 처리 위치를 **Controller → Service**로 이전 | Controller는 요청/응답만 담당하고, Service에서 비즈니스 예외를 처리하도록 구조 개선                                                                                     |
+| **2025.11.10** | ✅ **Item 모듈 리팩토링 완료**                  | `ItemService`로 예외 처리 및 검증 책임 이전 → Controller 단 SRP(단일 책임 원칙) 적용                                                                             |
+| **2025.11.12** | ✅ **User 모듈 리팩토링 완료**                  | `UserService`에서 예외 처리 및 검증 통합 <br> - 중복 이메일 검증 추가<br> - `@Valid` 기반 유효성 검사 추가<br> - `ErrorCode` Enum 확장 (USER_NOT_FOUND, DUPLICATE_EMAIL 등) |
+| **2025.11.12** | ✅ **API 응답 통일화**                       | `ApiResponse<T>`를 도입하여 모든 응답 구조를 `{ code, message, data }` 형태로 일원화                                                                          |
 
 ---
 
