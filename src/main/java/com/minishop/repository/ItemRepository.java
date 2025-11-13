@@ -12,5 +12,5 @@ public interface ItemRepository {
     int delete(Long id);
     List<Items> findAll();
     Items findByName(String itemName);
-
+    void update(Items dbItem);
 }

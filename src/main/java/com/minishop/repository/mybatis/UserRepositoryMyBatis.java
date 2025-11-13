@@ -4,6 +4,7 @@ import com.minishop.domain.Users;
 import com.minishop.exception.AppException;
 import com.minishop.exception.ErrorCode;
 import com.minishop.repository.UserRepository;
+import com.minishop.repository.mybatis.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import java.util.List;

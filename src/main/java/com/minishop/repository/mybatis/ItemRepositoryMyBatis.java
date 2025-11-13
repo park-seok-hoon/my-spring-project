@@ -2,6 +2,7 @@ package com.minishop.repository.mybatis;
 
 import com.minishop.domain.Items;
 import com.minishop.repository.ItemRepository;
+import com.minishop.repository.mybatis.mapper.ItemMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -44,6 +45,11 @@ public class ItemRepositoryMyBatis implements ItemRepository {
     @Override
     public Items findByName(String itemName) {
         return itemMapper.findByName(itemName);
+    }
+
+    @Override
+    public void update(Items dbItem) {
+        itemMapper.update(dbItem);
     }
 
 

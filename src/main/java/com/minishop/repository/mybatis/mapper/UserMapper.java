@@ -1,4 +1,4 @@
-package com.minishop.repository.mybatis;
+package com.minishop.repository.mybatis.mapper;
 
 import com.minishop.domain.Users;
 import org.apache.ibatis.annotations.Mapper;

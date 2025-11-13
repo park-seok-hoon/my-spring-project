@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.minishop.repository.mybatis.ItemMapper">
+<mapper namespace="com.minishop.repository.mybatis.mapper.ItemMapper">
     <!-- SELECT -->
     <select id="findById" parameterType="long" resultType="Items">
         SELECT id, name, price, stock_quantity
@@ -33,6 +33,12 @@
             price =#{item.price},
             stock_quantity = #{item.stockQuantity}
         where id = #{id}
+    </update>
+
+    <update id="update" parameterType="Items">
+        UPDATE items
+        SET stock_quantity = #{stockQuantity}
+        WHERE item_id = #{itemId}
     </update>
 
     <!-- delete -->
