@@ -45,14 +45,14 @@ public class OrderController {
     }
 
 
-    // 주문 정보 수정 (예: 상태 변경, userId 변경)
+    // 주문 상태 변경
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Orders>> updateOrder(
+    public ResponseEntity<ApiResponse<Orders>> updateOrderStatus(
             @PathVariable Long id,
             @RequestBody OrderUpdateRequest request) {
 
         Orders updated = orderService.updateOrder(id, request);
-        return ResponseEntity.ok(ApiResponse.success("주문 수정 성공", updated));
+        return ResponseEntity.ok(ApiResponse.success("주문 상태 변경 성공", updated));
     }
 
 
@@ -64,6 +64,7 @@ public class OrderController {
 //    }
 
     //주문 수정
+
 
 
 }

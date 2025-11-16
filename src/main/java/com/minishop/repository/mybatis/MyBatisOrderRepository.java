@@ -47,4 +47,9 @@ public class MyBatisOrderRepository implements OrderRepository {
         orderMapper.updateOrderStatus(orderId, "CANCELLED");
     }
 
+    @Override
+    public void updateStatus(Long orderId, String newStatus) {
+        orderMapper.updateOrderStatus(orderId,newStatus);
+    }
+
 }

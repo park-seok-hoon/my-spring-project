@@ -10,4 +10,5 @@ public interface OrderRepository {
     List<Orders> findAll();
     void update(Orders order);
     void cancel(Long orderId);
+    void updateStatus(Long orderId, String newStatus);
 }

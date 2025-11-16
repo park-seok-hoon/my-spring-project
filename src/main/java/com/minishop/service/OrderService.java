@@ -136,28 +136,50 @@ public class OrderService {
     @Transactional
     public Orders updateOrder(Long orderId, OrderUpdateRequest request) {
 
+        // (1) 주문 조회
         Orders order = orderRepository.findById(orderId);
+        //주문이 없는 경우
+        if (order == null) {
+            throw new AppException(ErrorCode.ORDER_NOT_FOUND);
+        }
 
-        log.info("service 에서 order 정보 {}",order);
+        // (2) 상태 변경 요청 값 검증
+        String newStatus = request.getStatus();
 
-//        if (order == null) {
-//            throw new AppException(ErrorCode.ORDER_NOT_FOUND);
-//        }
-//
-//        // 업데이트 가능한 필드 적용
-//        if (request.getUserId() != null) {
-//            order.setUserId(request.getUserId());
-//        }
-//
-//        if (request.getStatus() != null) {
-//            order.setStatus(request.getStatus());
-//        }
+        //상태가 null이거나 공백이면
+        if (newStatus == null || newStatus.isBlank()) {
+            throw new AppException(ErrorCode.INVALID_STATUS);
+        }
 
-        // DB 반영
-        orderRepository.update(order);
+        // (4) 상태 값 유효성 체크
+        if (!isValidStatus(newStatus)) {
+            throw new AppException(ErrorCode.INVALID_STATUS);
+        }
+
+        // (3) 이미 CANCELLED로 변경된 상태라면 수정 불가
+        if ("CANCELLED".equals(order.getStatus())) {
+            throw new AppException(ErrorCode.ALREADY_CANCELLED);
+        }
+
+        // (5) 상태 변경
+        order.setStatus(newStatus);
+
+        // (6) DB 업데이트
+        orderRepository.updateStatus(orderId, newStatus);
 
         return order;
     }
+
+    private boolean isValidStatus(String status) {
+        // NEW : 주문 생성, CANCELLED : 주문 취소 , SHIPPED : 배송중 , COMPLETED : 배송완료
+        boolean b = status.equals("NEW") ||
+                status.equals("CANCELLED") ||
+                status.equals("SHIPPED") ||
+                status.equals("COMPLETED");
+
+        return b;
+    }
+
 
 //    @Transactional
 //    public Orders cancelOrder(Long orderId) {
