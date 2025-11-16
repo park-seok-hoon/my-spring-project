@@ -1,5 +1,6 @@
 package com.minishop.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,6 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class ApiResponse<T> {
     private String code;    //상태 코드(SUCCESS, ERROR 등)
     private String message; //설명 메시지

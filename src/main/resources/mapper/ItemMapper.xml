@@ -4,6 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.minishop.repository.mybatis.mapper.ItemMapper">
+
     <!-- SELECT -->
     <select id="findById" parameterType="long" resultType="Items">
         SELECT id, name, price, stock_quantity
@@ -12,7 +13,9 @@
     </select>
 
     <select id="findByName" resultType="Items">
-        select * from items where name = #{itemName}
+        SELECT id, name, price, stock_quantity
+        FROM items
+        WHERE name = #{itemName}
     </select>
 
     <select id="findAll" resultType="Items">
@@ -22,27 +25,39 @@
 
     <!-- INSERT -->
     <insert id="saveItem" parameterType="Items" useGeneratedKeys="true" keyProperty="id">
-        insert into items (name, price, stock_quantity)
+        INSERT INTO items (name, price, stock_quantity)
         VALUES (#{name}, #{price}, #{stockQuantity})
     </insert>
 
     <!-- UPDATE -->
-    <update id="updateItem">
-        update items
-        set name = #{item.name},
-            price =#{item.price},
-            stock_quantity = #{item.stockQuantity}
-        where id = #{id}
+    <update id="updateItem" parameterType="Items">
+        UPDATE items
+        SET
+        name = #{name},
+        price = #{price},
+        stock_quantity = #{stockQuantity}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 재고만 수정하는 UPDATE-->
+    <update id="updateStock" parameterType="Items">
+        UPDATE items
+        SET stock_quantity = #{stockQuantity}
+        WHERE id = #{id}
     </update>
 
     <update id="update" parameterType="Items">
         UPDATE items
-        SET stock_quantity = #{stockQuantity}
-        WHERE item_id = #{itemId}
+        SET
+        stock_quantity = #{stockQuantity},
+        price = #{price}
+        WHERE id = #{id}
     </update>
 
-    <!-- delete -->
+
+    <!-- DELETE -->
     <delete id="deleteItem">
-        delete from items where id = #{id}
+        DELETE FROM items WHERE id = #{id}
     </delete>
+
 </mapper>

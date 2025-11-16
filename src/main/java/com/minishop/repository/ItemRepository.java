@@ -13,4 +13,5 @@ public interface ItemRepository {
     List<Items> findAll();
     Items findByName(String itemName);
     void update(Items dbItem);
+    void updateStock(Items dbItem); //재고 업데이트
 }

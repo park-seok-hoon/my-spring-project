@@ -7,11 +7,13 @@ import com.minishop.dto.order.OrderUpdateRequest;
 import com.minishop.response.ApiResponse;
 import com.minishop.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/orders")
 @RequiredArgsConstructor
@@ -30,6 +32,7 @@ public class OrderController {
     // 단일 주문 조회
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Orders>> getOrder(@PathVariable Long id) {
+        log.info("컨트롤러 부분 Get / {} 들어오는 요청",id);
         Orders order = orderService.findOrder(id);
         return ResponseEntity.ok(ApiResponse.success("주문 조회 성공", order));
     }
@@ -38,8 +41,9 @@ public class OrderController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<Orders>>> getAllOrders() {
         List<Orders> orders = orderService.findAllOrders();
-        return ResponseEntity.ok(ApiResponse.success("주문 목록 조회 성공", orders));
+        return ResponseEntity.ok(ApiResponse.success("주문 전체 조회 성공", orders));
     }
+
 
     // 주문 정보 수정 (예: 상태 변경, userId 변경)
     @PutMapping("/{id}")
@@ -51,12 +55,13 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success("주문 수정 성공", updated));
     }
 
-    //주문 취소
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Orders>> cancelOrder(@PathVariable Long id) {
-        Orders cancelled = orderService.cancelOrder(id);
-        return ResponseEntity.ok(ApiResponse.success("주문 취소 성공", cancelled));
-    }
+
+//    //주문 취소
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<ApiResponse<Orders>> cancelOrder(@PathVariable Long id) {
+//        Orders cancelled = orderService.cancelOrder(id);
+//        return ResponseEntity.ok(ApiResponse.success("주문 취소 성공", cancelled));
+//    }
 
     //주문 수정
 

@@ -18,7 +18,9 @@ public class MyBatisOrderRepository implements OrderRepository {
 
     @Override
     public void save(Orders order) {
-        orderMapper.insertOrder(order);
+        orderMapper.insertOrder(order); //주문 먼저 DB에 넣기
+
+        //1개의 주문에 여러개의 주문을 함
         for (OrderItems item : order.getOrderItems()) {
             item.setOrderId(order.getId());
             orderMapper.insertOrderItem(item);

@@ -52,5 +52,10 @@ public class ItemRepositoryMyBatis implements ItemRepository {
         itemMapper.update(dbItem);
     }
 
+    @Override
+    public void updateStock(Items dbItem) {
+        itemMapper.updateStock(dbItem);
+    }
+
 
 }

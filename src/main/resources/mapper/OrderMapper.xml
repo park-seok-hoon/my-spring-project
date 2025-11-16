@@ -1,91 +1,121 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.minishop.repository.mybatis.mapper.OrderMapper">
 
+    <!-- 주문 매핑 (order + orderItems)-->
+    <resultMap id="orderResultMap" type="Orders">
+        <id property="id" column="order_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="orderDate" column="order_date"/>
+        <result property="totalPrice" column="total_price"/>
+        <result property="status" column="status"/>
+
+        <!-- (1:N 관계 매핑) orderItems-->
+        <collection property="orderItems"
+                    ofType="OrderItems"
+                    resultMap="orderItemResultMap"/>
+    </resultMap>
+
+    <!-- 주문상품 매핑  (OrderItems + Items)-->
+    <resultMap id="orderItemResultMap" type="OrderItems">
+        <id property="id" column="oi_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="itemId" column="item_id"/>
+        <result property="quantity" column="quantity"/>
+
+        <!-- Items (1:1 관계 매핑) -->
+        <association property="item" javaType="Items">
+            <id property="id" column="i_item_id"/>
+            <result property="name" column="item_name"/>
+            <result property="price" column="item_price"/>
+            <result property="stockQuantity" column="item_stock"/>
+        </association>
+    </resultMap>
+
+
     <!-- 주문 저장 -->
-    <insert id="insertOrder" parameterType="Orders" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO orders (user_id, order_date, total_price)
-        VALUES (#{userId}, #{orderDate}, #{totalPrice})
+    <insert id="insertOrder"
+            parameterType="Orders"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO orders (user_id, order_date, total_price, status)
+        VALUES (#{userId}, #{orderDate}, #{totalPrice}, #{status})
     </insert>
 
     <!-- 주문상품 저장 -->
-    <insert id="insertOrderItem" parameterType="OrderItems">
+    <insert id="insertOrderItem"
+            parameterType="OrderItems"
+            useGeneratedKeys="true"
+            keyProperty="id">
         INSERT INTO order_items (order_id, item_id, quantity)
         VALUES (#{orderId}, #{itemId}, #{quantity})
     </insert>
 
     <!-- 주문 단건 조회 -->
-    <select id="findById" resultType="Orders">
+    <select id="findById"
+            parameterType="long"
+            resultMap="orderResultMap">
+
         SELECT
-        order_id AS id,
-        user_id AS userId,
-        order_date AS orderDate,
-        total_price AS totalPrice,
-        status
-        FROM orders
-        WHERE order_id = #{orderId}
+        /* Orders */
+        o.id             AS order_id,
+        o.user_id        AS user_id,
+        o.order_date     AS order_date,
+        o.total_price    AS total_price,
+        o.status         AS status,
+
+        /* OrderItems */
+        oi.id            AS oi_id,
+        oi.order_id      AS oi_order_id,
+        oi.item_id       AS oi_item_id,
+        oi.quantity      AS quantity,
+
+        /* Items */
+        i.id             AS i_item_id,
+        i.name           AS item_name,
+        i.price          AS item_price,
+        i.stock_quantity AS item_stock
+
+        FROM orders o
+        LEFT JOIN order_items oi ON o.id = oi.order_id
+        LEFT JOIN items i ON oi.item_id = i.id
+        WHERE o.id = #{id}
     </select>
 
-
-    <!-- 전체 주문 조회 -->
+    <!-- 주문 전체 조회 (요약) -->
     <select id="findAll" resultType="Orders">
         SELECT
-        order_id AS id,
+        id AS id,
         user_id AS userId,
         order_date AS orderDate,
         total_price AS totalPrice,
-        status
+        status AS status
         FROM orders
-        ORDER BY order_id DESC
+        ORDER BY order_date DESC
     </select>
 
+
+
     <!-- 주문 상태 변경 -->
-    <update id="updateOrderStatus">
+    <update id="updateOrderStatus" parameterType="map">
         UPDATE orders
         SET status = #{status}
-        WHERE order_id = #{orderId}
+        WHERE id = #{orderId}
     </update>
 
+
     <!-- 주문 수정 -->
-    <update id="updateOrder" parameterType="Orders">
+    <update id="updateOrder"
+            parameterType="com.minishop.domain.Orders">
         UPDATE orders
         SET
         user_id = #{userId},
-        status = #{status}
-        WHERE order_id = #{id}
-    </update>
-
-
-    <!-- 주문 + 주문상품 전체 매핑 -->
-    <resultMap id="orderResultMap" type="Orders">
-        <id property="id" column="id"/>
-        <result property="userId" column="user_id"/>
-        <result property="orderDate" column="order_date"/>
-        <result property="totalPrice" column="total_price"/>
-
-        <!-- Orders.orderItems 필드 매핑 -->
-        <collection property="orderItems"
-                    ofType="com.minishop.domain.OrderItems"
-                    select="findOrderItemsByOrderId"
-                    column="id" />
-    </resultMap>
-
-    <!-- 주문상품 조회 -->
-    <select id="findOrderItemsByOrderId" parameterType="long" resultType="OrderItems">
-        SELECT * FROM order_items WHERE order_id = #{value}
-    </select>
-
-    <!-- 전체 주문 목록 -->
-    <select id="findAll" resultMap="orderResultMap">
-        SELECT * FROM orders ORDER BY order_date DESC
-    </select>
-
-    <!-- 주문 상태 변경 -->
-    <update id="updateOrderStatus">
-        UPDATE orders SET status = #{status}
-        WHERE id = #{orderId}
+        status = #{status},
+        total_price = #{totalPrice}
+        WHERE id = #{id}
     </update>
 
 </mapper>
