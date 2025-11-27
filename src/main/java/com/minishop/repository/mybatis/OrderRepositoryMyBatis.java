@@ -1,4 +1,4 @@
-// repository/mybatis/MyBatisOrderRepository.java
+// repository/mybatis/OrderRepositoryMyBatis.java
 package com.minishop.repository.mybatis;
 
 import com.minishop.domain.Orders;
@@ -12,15 +12,15 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class MyBatisOrderRepository implements OrderRepository {
+public class OrderRepositoryMyBatis implements OrderRepository {
 
     private final OrderMapper orderMapper;
 
     @Override
     public void save(Orders order) {
-        orderMapper.insertOrder(order); //주문 먼저 DB에 넣기
+        orderMapper.insertOrder(order);
 
-        //1개의 주문에 여러개의 주문을 함
+        // 1개의 주문에 여러 개의 상품을 주문
         for (OrderItems item : order.getOrderItems()) {
             item.setOrderId(order.getId());
             orderMapper.insertOrderItem(item);
@@ -43,13 +43,24 @@ public class MyBatisOrderRepository implements OrderRepository {
     }
 
     @Override
-    public void cancel(Long orderId) {
-        orderMapper.updateOrderStatus(orderId, "CANCELLED");
+    public void updateStatus(Long orderId, String newStatus) {
+        orderMapper.updateOrderStatus(orderId, newStatus);
     }
 
     @Override
-    public void updateStatus(Long orderId, String newStatus) {
-        orderMapper.updateOrderStatus(orderId,newStatus);
+    public void updateTotalPrice(Long orderId, int newTotalPrice) {
+        orderMapper.updateTotalPrice(orderId, newTotalPrice);
     }
+
+    @Override
+    public void updateOrderItems(Long id, List<OrderItems> orderItems) {
+        orderMapper.updateOrderItems(id, orderItems);
+    }
+
+    @Override
+    public void deleteAll() {
+        orderMapper.deleteAll();
+    }
+
 
 }

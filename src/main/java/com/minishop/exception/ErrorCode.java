@@ -20,8 +20,11 @@ public enum ErrorCode {
     //주문 예외
     OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "재고가 부족합니다."),
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
-    INVALID_QUANTITY(HttpStatus.BAD_REQUEST, "수량은 1 이상이어야 합니다."),
+    INVALID_QUANTITY(HttpStatus.BAD_REQUEST, "주문 수량은 1 이상이어야 합니다."),
+    ORDER_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "주문 상품을 찾을 수 없습니다."),
     PRICE_OVERFLOW(HttpStatus.BAD_REQUEST, "상품 금액 계산 중 오류가 발생했습니다."),
+    INVALID_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "잘못된 상태 전환입니다."),
+    CANNOT_MODIFY_COMPLETED(HttpStatus.BAD_REQUEST, "배송 완료된 주문은 수정할 수 없습니다."),
 
     //주문 취소 예외
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다."),
@@ -32,7 +35,8 @@ public enum ErrorCode {
 
     //DB 또는 서버 에러
     DATABASE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 오류가 발생했습니다."),
-    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.");
+    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.")
+    ;
 
 
     private final HttpStatus status;

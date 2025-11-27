@@ -20,7 +20,15 @@ public interface OrderMapper {
 
     List<Orders> findAll(); // 전체 주문 조회
 
-    void updateOrderStatus(@Param("orderId") Long orderId, @Param("status") String status); //주문 상태 변경
+    void updateOrderStatus(@Param("orderId") Long orderId,
+                           @Param("status") String status); //주문 상태 변경
 
     void updateOrder(Orders order); //주문 수정
+
+    void updateTotalPrice(@Param("orderId") Long orderId,
+                          @Param("totalPrice") int totalPrice);
+
+    void updateOrderItems(@Param("id")Long id, @Param("orderItems")List<OrderItems> orderItems);
+
+    void deleteAll();
 }

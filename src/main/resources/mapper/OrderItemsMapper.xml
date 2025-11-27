@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.minishop.repository.mybatis.mapper.OrderItemsMapper">
+
+    <!-- 주문상품 수정 -->
+    <update id="update" parameterType="OrderItems">
+        UPDATE order_items
+        SET
+        item_id = #{itemId},
+        quantity = #{quantity}
+        WHERE id = #{id}
+    </update>
+
+</mapper>
