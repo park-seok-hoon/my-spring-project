@@ -2,18 +2,14 @@ package com.minishop.service;
 
 
 import com.minishop.domain.Items;
-import com.minishop.domain.OrderItems;
 import com.minishop.domain.Orders;
 import com.minishop.dto.order.OrderCreateRequest;
 import com.minishop.dto.order.OrderItemRequest;
 import com.minishop.dto.order.OrderModifyRequest;
 import com.minishop.exception.AppException;
-import com.minishop.exception.ErrorCode;
 import com.minishop.repository.ItemRepository;
 import com.minishop.repository.OrderRepository;
 import com.minishop.response.OrderCancelResponse;
-import jdk.swing.interop.SwingInterOpUtils;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
