@@ -5,14 +5,18 @@
 
 <mapper namespace="com.minishop.repository.mybatis.mapper.ItemMapper">
 
-    <!-- SELECT -->
+    <!-- ===========================
+          SELECT
+    ============================ -->
+
     <select id="findById" parameterType="long" resultType="Items">
         SELECT id, name, price, stock_quantity
         FROM items
         WHERE id = #{id}
     </select>
 
-    <select id="findByName" resultType="Items">
+    <!-- findByName(String itemName) -->
+    <select id="findByName" parameterType="string" resultType="Items">
         SELECT id, name, price, stock_quantity
         FROM items
         WHERE name = #{itemName}
@@ -23,29 +27,30 @@
         FROM items
     </select>
 
-    <!-- INSERT -->
+    <!-- ===========================
+          INSERT
+    ============================ -->
+
     <insert id="saveItem" parameterType="Items" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO items (name, price, stock_quantity)
         VALUES (#{name}, #{price}, #{stockQuantity})
     </insert>
 
-    <!-- UPDATE -->
-    <update id="updateItem" parameterType="Items">
+    <!-- ===========================
+          UPDATE
+    ============================ -->
+
+    <!-- updateItem(@Param("id"), @Param("item")) -->
+    <update id="updateItem">
         UPDATE items
         SET
-        name = #{name},
-        price = #{price},
-        stock_quantity = #{stockQuantity}
+        name = #{item.name},
+        price = #{item.price},
+        stock_quantity = #{item.stockQuantity}
         WHERE id = #{id}
     </update>
 
-    <!-- 재고만 수정하는 UPDATE-->
-    <update id="updateStock" parameterType="Items">
-        UPDATE items
-        SET stock_quantity = #{stockQuantity}
-        WHERE id = #{id}
-    </update>
-
+    <!-- update(Items dbItem) -->
     <update id="update" parameterType="Items">
         UPDATE items
         SET
@@ -54,10 +59,24 @@
         WHERE id = #{id}
     </update>
 
+    <!-- updateStock(Items dbItem) -->
+    <update id="updateStock" parameterType="Items">
+        UPDATE items
+        SET stock_quantity = #{stockQuantity}
+        WHERE id = #{id}
+    </update>
 
-    <!-- DELETE -->
-    <delete id="deleteItem">
-        DELETE FROM items WHERE id = #{id}
+    <!-- ===========================
+          DELETE
+    ============================ -->
+
+    <delete id="deleteItem" parameterType="long">
+        DELETE FROM items
+        WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteAll">
+        DELETE FROM items
     </delete>
 
 </mapper>

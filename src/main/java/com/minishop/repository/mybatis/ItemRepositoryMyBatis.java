@@ -57,5 +57,10 @@ public class ItemRepositoryMyBatis implements ItemRepository {
         itemMapper.updateStock(dbItem);
     }
 
+    @Override
+    public void deleteAll() {
+        itemMapper.deleteAll();
+    }
+
 
 }

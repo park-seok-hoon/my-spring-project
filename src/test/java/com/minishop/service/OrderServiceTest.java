@@ -162,7 +162,6 @@ class OrderServiceTest {
 
     }
 
-
     @Test
     @DisplayName("주문 단건 조회 - 성공 테스트")
     void findOrderSuccess() {

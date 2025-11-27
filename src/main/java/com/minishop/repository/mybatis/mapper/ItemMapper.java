@@ -17,4 +17,5 @@ public interface ItemMapper {
     Items findByName(String itemName);  //예외 처리를 위한 아이템 이름 가져오기
     int update(Items dbItem);
     void updateStock(Items dbItem);
+    void deleteAll();
 }
