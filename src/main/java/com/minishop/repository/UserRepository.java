@@ -13,4 +13,5 @@ public interface UserRepository {
     Users findById(Long id);
     List<Users> findAll();
     Users findByEmail(@Param("email") String email);
+    void deleteAll();
 }

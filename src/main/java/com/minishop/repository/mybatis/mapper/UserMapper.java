@@ -1,4 +1,4 @@
-package com.minishop.repository.mybatis;
+package com.minishop.repository.mybatis.mapper;
 
 import com.minishop.domain.Users;
 import org.apache.ibatis.annotations.Mapper;
@@ -14,4 +14,5 @@ public interface UserMapper {
     int updateUser(@Param("id")Long id, @Param("user")Users user); //UPDATE
     int deleteUser(Long id); //DELETE
     Users findUserByEmail(String email);
+    void deleteAll();
 }

@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 public class Items {
 
     private Long id;
-
     private String name;
     private int price;
     private int stockQuantity; //재고 수량

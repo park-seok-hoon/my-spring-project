@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.minishop.repository.mybatis.mapper.OrderMapper">
+
+    <!-- Orders 전체 매핑 -->
+    <resultMap id="orderResultMap" type="Orders">
+        <id property="id" column="order_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="orderDate" column="order_date"/>
+        <result property="totalPrice" column="total_price"/>
+        <result property="status" column="status"/>
+
+        <!-- OrderItems 목록 -->
+        <collection property="orderItems"
+                    ofType="OrderItems"
+                    resultMap="orderItemResultMap"/>
+    </resultMap>
+
+    <!-- OrderItems + Items -->
+    <resultMap id="orderItemResultMap" type="OrderItems">
+        <id property="id" column="oi_id"/>
+        <result property="orderId" column="oi_order_id"/>
+        <result property="itemId" column="oi_item_id"/>
+        <result property="quantity" column="quantity"/>
+
+        <association property="item" javaType="Items">
+            <id property="id" column="i_item_id"/>
+            <result property="name" column="item_name"/>
+            <result property="price" column="item_price"/>
+            <result property="stockQuantity" column="item_stock"/>
+        </association>
+    </resultMap>
+
+
+    <!-- 주문 저장 -->
+    <insert id="insertOrder"
+            parameterType="Orders"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO orders (user_id, order_date, total_price, status)
+        VALUES (#{userId}, #{orderDate}, #{totalPrice}, #{status})
+    </insert>
+
+    <!-- 주문상품 저장 -->
+    <insert id="insertOrderItem"
+            parameterType="OrderItems"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO order_items (order_id, item_id, quantity)
+        VALUES (#{orderId}, #{itemId}, #{quantity})
+    </insert>
+
+
+    <!-- 주문 단건 조회 -->
+    <select id="findById"
+            parameterType="long"
+            resultMap="orderResultMap">
+
+        SELECT
+        /* Orders */
+        o.id             AS order_id,
+        o.user_id        AS user_id,
+        o.order_date     AS order_date,
+        o.total_price    AS total_price,
+        o.status         AS status,
+
+        /* OrderItems */
+        oi.id            AS oi_id,
+        oi.order_id      AS oi_order_id,
+        oi.item_id       AS oi_item_id,
+        oi.quantity      AS quantity,
+
+        /* Items */
+        i.id             AS i_item_id,
+        i.name           AS item_name,
+        i.price          AS item_price,
+        i.stock_quantity AS item_stock
+
+        FROM orders o
+        LEFT JOIN order_items oi ON o.id = oi.order_id
+        LEFT JOIN items i ON oi.item_id = i.id
+        WHERE o.id = #{id}
+    </select>
+
+
+    <!-- 전체 주문 조회 -->
+    <select id="findAll" resultType="Orders">
+        SELECT
+        id AS id,
+        user_id AS userId,
+        order_date AS orderDate,
+        total_price AS totalPrice,
+        status AS status
+        FROM orders
+        ORDER BY order_date DESC
+    </select>
+
+
+    <!-- 주문 상태 변경 -->
+    <update id="updateOrderStatus" parameterType="map">
+        UPDATE orders
+        SET status = #{status}
+        WHERE id = #{orderId}
+    </update>
+
+
+    <!-- 주문 수정 -->
+    <update id="updateOrder" parameterType="Orders">
+        UPDATE orders
+        SET
+        user_id = #{userId},
+        status = #{status},
+        total_price = #{totalPrice}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 총액 변경 -->
+    <update id="updateTotalPrice" parameterType="map">
+        UPDATE orders
+        SET total_price = #{totalPrice}
+        WHERE id = #{orderId}
+    </update>
+
+    <!-- 주문 아이템 아이디 변경-->
+    <update id="updateOrderItems">
+        <foreach collection="orderItems" item="oi" separator=";">
+            UPDATE order_items
+            SET
+            item_id = #{oi.itemId},
+            quantity = #{oi.quantity}
+            WHERE
+            id = #{oi.id}
+            AND order_id = #{id}
+        </foreach>
+    </update>
+
+    <delete id="deleteAll">
+        DELETE FROM order_items;
+        DELETE FROM orders;
+        DELETE FROM items;
+        DELETE FROM users;
+    </delete>
+
+
+
+</mapper>
