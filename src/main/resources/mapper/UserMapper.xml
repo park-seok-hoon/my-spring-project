@@ -36,4 +36,8 @@
     <delete id="deleteUser">
         delete from users where id = #{id}
     </delete>
+
+    <delete id="deleteAll">
+        delete from users
+    </delete>
 </mapper>

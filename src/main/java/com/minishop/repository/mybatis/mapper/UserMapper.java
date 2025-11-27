@@ -14,4 +14,5 @@ public interface UserMapper {
     int updateUser(@Param("id")Long id, @Param("user")Users user); //UPDATE
     int deleteUser(Long id); //DELETE
     Users findUserByEmail(String email);
+    void deleteAll();
 }
