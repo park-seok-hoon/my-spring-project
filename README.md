@@ -493,7 +493,7 @@ src
    │      │   │    └─ UserUpdateRequest
    │      │   └─ order
    │      │        ├─ OrderCreateRequest
-   │      │        ├─ OrderUpdateRequest
+   │      │        ├─ OrderItemRequest
    │      │        ├─ OrderModifyRequest
    │      │        └─ OrderUpdateRequest
    │      │
@@ -561,40 +561,66 @@ src
 
 ## ▶ 실행 방법 (Run Guide)
 
+### 1) 프로젝트 클론
+
 ```bash
-# 1. 프로젝트 클론
 git clone https://github.com/park-seok-hoon/my-spring-project.git
 cd my-spring-project
-
-# 2. (선택) 프로필 / DB 설정
-# application.yml 에서 H2 또는 MySQL 설정 선택
-
-# 3. 빌드 및 실행
-./gradlew bootRun   # (Windows에서는 gradlew.bat bootRun)
-
-# 4. 기본 주소
-# http://localhost:8080
 ```
 
-* H2를 사용할 경우: 콘솔에서 스키마 자동 생성 후 바로 테스트 가능
-* MySQL 사용 시: 스키마 생성 및 계정 정보만 맞춰주면 동일하게 동작
+### 2) 실행 (Windows / macOS / Linux)
+
+#### ✔ Windows
+
+```bash
+gradlew.bat bootRun
+```
+
+#### ✔ macOS / Linux
+
+```bash
+./gradlew bootRun
+```
+
+### 3) H2 Console 접속 (Embedded 모드)
+
+서버 실행 후 브라우저에서 아래 주소로 접속합니다:
+
+```
+http://localhost:8080/h2-console
+```
+
+다음 값으로 입력 후 접속합니다:
+
+```
+JDBC URL: jdbc:h2:~/minishop
+Driver   : org.h2.Driver
+User     : sa
+Password : (빈칸)
+```
+📌 **H2는 Embedded 모드로 자동 실행되므로, 따로 H2 서버를 켜거나 설치할 필요가 없습니다.**
+📌 Spring Boot가 실행될 때 `~/minishop.mv.db` 파일을 자동으로 생성/관리합니다.
 
 ---
 
-# 🗄️ H2 & MySQL 접속 정보
-✔ H2 콘솔 접속
-- URL: http://localhost:8080/h2-console
-- JDBC URL: jdbc:h2:~/minishop
-- USER: sa
-- PW: (빈 값)
-application.properties에서 변경 가능
-
-✔ MySQL 연결
+🛠 Spring Boot 설정(application.properties)
 ```
-spring.datasource.url=jdbc:mysql://localhost:3306/minishop
-spring.datasource.username=root
-spring.datasource.password=1234
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+# H2 Console
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+
+# Embedded H2 Database
+spring.datasource.url=jdbc:h2:~/minishop
+spring.datasource.driver-class-name=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+
+# MyBatis 설정
+mybatis.mapper-locations=classpath:mapper/**/*.xml
+mybatis.type-aliases-package=com.minishop.domain
+mybatis.configuration.map-underscore-to-camel-case=true
+logging.level.com.minishop.repository.mybatis=trace
+
 ```
 
 👨‍💻 내가 맡은 역할 & 해결한 핵심 난관
