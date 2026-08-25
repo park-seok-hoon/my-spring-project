@@ -1,17 +1,23 @@
 package com.minishop.repository;
 
-import com.minishop.domain.Users;
-import org.apache.ibatis.annotations.Param;
+import com.minishop.domain.user.User;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserRepository {
 
-    Users save(Users user);
-    Users update(Long id, Users user);
+    User save(User user);
+
+    User update(Long id, User user);
+
     int delete(Long id);
-    Users findById(Long id);
-    List<Users> findAll();
-    Users findByEmail(@Param("email") String email);
+
+    Optional<User> findById(Long id);
+
+    List<User> findAll();
+
+    User findByEmail(String email);
+
     void deleteAll();
 }

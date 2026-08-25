@@ -1,9 +1,10 @@
 package com.minishop.controller;
 
-import com.minishop.domain.Users;
+import com.minishop.domain.user.User;
 import com.minishop.dto.item.UserCreateRequest;
 import com.minishop.dto.item.UserUpdateRequest;
 import com.minishop.response.ApiResponse;
+
 import com.minishop.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,8 @@ public class UserController {
      * GlobalExceptionHandler에서 처리됨.
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<Users>> createUsers(@Valid @RequestBody UserCreateRequest request) {
-        Users user = userService.save(request);
+    public ResponseEntity<ApiResponse<User>> createUsers(@Valid @RequestBody UserCreateRequest request) {
+        User user = userService.save(request);
         return ResponseEntity.ok(ApiResponse.success("유저 등록 성공", user));
     }
 
@@ -34,28 +35,28 @@ public class UserController {
      * 상품이 없으면 AppException에서 user_NOT_FOUND 발생
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Users>>> getAllUsers() {
-        List<Users> users = userService.findAll();
-        return ResponseEntity.ok(ApiResponse.success("유저 목록 조회 성공",users));
+    public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
+        List<User> users = userService.findAll();
+        return ResponseEntity.ok(ApiResponse.success("유저 목록 조회 성공", users));
     }
 
     /**
      * ✅ 유저 한명 조회 (Read One)
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Users>> getById(@PathVariable("id") Long id) {
-        Users findUser = userService.findById(id);
-        return ResponseEntity.ok(ApiResponse.success("유저 목록 조회 성공",findUser));
+    public ResponseEntity<ApiResponse<User>> getById(@PathVariable("id") Long id) {
+        User findUser = userService.findById(id);
+        return ResponseEntity.ok(ApiResponse.success("유저 목록 조회 성공", findUser));
     }
 
     /**
      * ✅ 상품 수정 (Update)
      */
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Users>> updateUser(@PathVariable("id") Long id,@Valid @RequestBody UserUpdateRequest updateRequest) {
+    public ResponseEntity<ApiResponse<User>> updateUser(@PathVariable("id") Long id, @Valid @RequestBody UserUpdateRequest updateRequest) {
         System.out.println("✅ PUT 요청 들어옴: id = " + id);
-        Users updateUser = userService.update(id, updateRequest);
-        return ResponseEntity.ok(ApiResponse.success("유저 정보 수정 성공.",updateUser));
+        User updateUser = userService.update(id, updateRequest);
+        return ResponseEntity.ok(ApiResponse.success("유저 정보 수정 성공.", updateUser));
 
     }
 
@@ -63,9 +64,9 @@ public class UserController {
      * ✅ 상품 삭제 (Delete)
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Users>> deleteItem(@PathVariable("id") Long id) {
+    public ResponseEntity<ApiResponse<User>> deleteItem(@PathVariable("id") Long id) {
         userService.delete(id);
-        return ResponseEntity.ok(ApiResponse.success("유저 삭제 성공.",null));
+        return ResponseEntity.ok(ApiResponse.success("유저 삭제 성공.", null));
     }
 
     /**

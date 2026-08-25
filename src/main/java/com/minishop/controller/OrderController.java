@@ -1,7 +1,7 @@
 // controller/OrderController.java
 package com.minishop.controller;
 
-import com.minishop.domain.Orders;
+import com.minishop.domain.order.Order;
 import com.minishop.dto.order.OrderCreateRequest;
 import com.minishop.dto.order.OrderModifyRequest;
 import com.minishop.dto.order.OrderUpdateRequest;
@@ -26,8 +26,8 @@ public class OrderController {
 
     // 주문하기
     @PostMapping
-    public ResponseEntity<ApiResponse<Orders>> createOrder(@RequestBody OrderCreateRequest request) {
-        Orders saved = orderService.createOrder(request);
+    public ResponseEntity<ApiResponse<Order>> createOrder(@RequestBody OrderCreateRequest request) {
+        Order saved = orderService.createOrder(request);
         URI location = URI.create("/orders/" + saved.getId());
         return ResponseEntity.created(location)
                 .body(ApiResponse.success("주문 생성 성공", saved));
@@ -35,26 +35,26 @@ public class OrderController {
 
     // 단일 주문 조회
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Orders>> getOrder(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Order>> getOrder(@PathVariable Long id) {
         log.info("컨트롤러 부분 GET /orders/{} 요청", id);
-        Orders order = orderService.findOrder(id);
+        Order order = orderService.findOrder(id);
         return ResponseEntity.ok(ApiResponse.success("주문 조회 성공", order));
     }
 
     // 전체 주문 조회
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Orders>>> getAllOrders() {
-        List<Orders> orders = orderService.findAllOrders();
+    public ResponseEntity<ApiResponse<List<Order>>> getAllOrders() {
+        List<Order> orders = orderService.findAllOrders();
         return ResponseEntity.ok(ApiResponse.success("주문 전체 조회 성공", orders));
     }
 
     // 주문 상태 변경
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Orders>> updateOrderStatus(
+    public ResponseEntity<ApiResponse<Order>> updateOrderStatus(
             @PathVariable Long id,
             @RequestBody OrderUpdateRequest request
     ) {
-        Orders updated = orderService.updateOrderStatus(id, request);
+        Order updated = orderService.updateOrderStatus(id, request);
         return ResponseEntity.ok(ApiResponse.success("주문 상태 변경 성공", updated));
     }
 
@@ -69,11 +69,11 @@ public class OrderController {
 
     // 주문 수정 (상품/수량 변경)
     @PutMapping("/{id}/items")
-    public ResponseEntity<ApiResponse<Orders>> modifyOrder(
+    public ResponseEntity<ApiResponse<Order>> modifyOrder(
             @PathVariable Long id,
             @RequestBody OrderModifyRequest request) {
 
-        Orders updated = orderService.modifyOrder(id, request);
+        Order updated = orderService.modifyOrder(id, request);
         return ResponseEntity.ok(
                 ApiResponse.success("주문 수정 성공", updated)
         );

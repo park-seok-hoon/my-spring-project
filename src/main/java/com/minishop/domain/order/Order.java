@@ -12,6 +12,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Table(name="orders")
 public class Order {
 
     @GeneratedValue @Id
@@ -30,7 +31,7 @@ public class Order {
     private int totalPrice;         // 총 가격
 
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
 

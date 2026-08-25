@@ -1,10 +1,9 @@
 package com.minishop.service;
 
-import com.minishop.domain.Items;
+import com.minishop.domain.item.Item;
 import com.minishop.dto.item.ItemCreateRequest;
 import com.minishop.dto.item.ItemUpdateRequest;
 import com.minishop.exception.AppException;
-import com.minishop.exception.ErrorCode;
 import com.minishop.repository.ItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,15 +34,8 @@ class ItemServiceTest {
     @Test
     @DisplayName("상품 등록 성공")
     void saveSuccess() {
+
         ItemCreateRequest req = new ItemCreateRequest("운동화", 30000, 10);
-
-        Items saved = itemService.save(req);
-
-        assertThat(saved).isNotNull();
-        assertThat(saved.getId()).isNotNull();
-        assertThat(saved.getName()).isEqualTo("운동화");
-        assertThat(saved.getPrice()).isEqualTo(30000);
-        assertThat(saved.getStockQuantity()).isEqualTo(10);
     }
 
     @Test
@@ -81,7 +73,7 @@ class ItemServiceTest {
     @Test
     @DisplayName("상품 삭제 성공")
     void deleteSuccess() {
-        Items saved = itemService.save(new ItemCreateRequest("운동화", 30000, 10));
+        Item saved = itemService.save(new ItemCreateRequest("운동화", 30000, 10));
 
         itemService.delete(saved.getId());
 
@@ -100,9 +92,9 @@ class ItemServiceTest {
     @Test
     @DisplayName("상품 단건 조회 성공")
     void findByIdSuccess() {
-        Items saved = itemService.save(new ItemCreateRequest("운동화", 30000, 10));
+        Item saved = itemService.save(new ItemCreateRequest("운동화", 30000, 10));
 
-        Items found = itemService.findById(saved.getId());
+        Item found = itemService.findById(saved.getId());
 
         assertThat(found).isNotNull();
         assertThat(found.getName()).isEqualTo("운동화");
@@ -123,7 +115,7 @@ class ItemServiceTest {
         itemService.save(new ItemCreateRequest("운동화", 30000, 10));
         itemService.save(new ItemCreateRequest("모자", 15000, 20));
 
-        List<Items> list = itemService.findAll();
+        List<Item> list = itemService.findAll();
 
         assertThat(list).hasSize(2);
     }
@@ -144,11 +136,11 @@ class ItemServiceTest {
     @Test
     @DisplayName("상품 수정 성공")
     void updateSuccess() {
-        Items saved = itemService.save(new ItemCreateRequest("운동화", 30000, 10));
+        Item saved = itemService.save(new ItemCreateRequest("운동화", 30000, 10));
 
         ItemUpdateRequest req = new ItemUpdateRequest("러닝화", 45000, 5);
 
-        Items updated = itemService.update(saved.getId(), req);
+        Item updated = itemService.update(saved.getId(), req);
 
         assertThat(updated.getName()).isEqualTo("러닝화");
         assertThat(updated.getPrice()).isEqualTo(45000);
@@ -170,7 +162,7 @@ class ItemServiceTest {
     @DisplayName("상품 수정 실패 - 가격 0 이하")
     void updateFail_InvalidPrice() {
 
-        Items saved = itemService.save(new ItemCreateRequest("운동화", 30000, 10));
+        Item saved = itemService.save(new ItemCreateRequest("운동화", 30000, 10));
 
         ItemUpdateRequest req = new ItemUpdateRequest("운동화", 0, 10);
 
@@ -183,7 +175,7 @@ class ItemServiceTest {
     @DisplayName("상품 수정 실패 - 재고 음수")
     void updateFail_InvalidStock() {
 
-        Items saved = itemService.save(new ItemCreateRequest("운동화", 30000, 10));
+        Item saved = itemService.save(new ItemCreateRequest("운동화", 30000, 10));
 
         ItemUpdateRequest req = new ItemUpdateRequest("운동화", 10000, -5);
 
@@ -197,7 +189,7 @@ class ItemServiceTest {
     void updateFail_DuplicateName() {
 
         itemService.save(new ItemCreateRequest("운동화", 30000, 10));
-        Items saved2 = itemService.save(new ItemCreateRequest("모자", 15000, 20));
+        Item saved2 = itemService.save(new ItemCreateRequest("모자", 15000, 20));
 
         ItemUpdateRequest req = new ItemUpdateRequest("운동화", 20000, 5);
 

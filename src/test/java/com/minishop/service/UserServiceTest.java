@@ -1,6 +1,7 @@
 package com.minishop.service;
 
-import com.minishop.domain.Users;
+
+import com.minishop.domain.user.User;
 import com.minishop.dto.item.UserCreateRequest;
 import com.minishop.dto.item.UserUpdateRequest;
 import com.minishop.exception.AppException;
@@ -38,7 +39,7 @@ class UserServiceTest {
 
         UserCreateRequest req = new UserCreateRequest("박석훈", "password123", "test@example.com");
 
-        Users saved = userService.save(req);
+        User saved = userService.save(req);
 
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getUsername()).isEqualTo("박석훈");
@@ -75,7 +76,7 @@ class UserServiceTest {
     @DisplayName("사용자 삭제 성공")
     void deleteSuccess() {
 
-        Users saved = userService.save(new UserCreateRequest("박석훈", "password123", "delete@test.com"));
+        User saved = userService.save(new UserCreateRequest("박석훈", "password123", "delete@test.com"));
 
         userService.delete(saved.getId());
 
@@ -97,9 +98,9 @@ class UserServiceTest {
     @DisplayName("단일 사용자 조회 성공")
     void findByIdSuccess() {
 
-        Users saved = userService.save(new UserCreateRequest("박석훈", "password123", "find@test.com"));
+        User saved = userService.save(new UserCreateRequest("박석훈", "password123", "find@test.com"));
 
-        Users found = userService.findById(saved.getId());
+        User found = userService.findById(saved.getId());
 
         assertThat(found.getUsername()).isEqualTo("박석훈");
     }
@@ -120,7 +121,7 @@ class UserServiceTest {
         userService.save(new UserCreateRequest("박석훈", "password123", "a@test.com"));
         userService.save(new UserCreateRequest("박석훈1", "password123", "b@test.com"));
 
-        List<Users> list = userService.findAll();
+        List<User> list = userService.findAll();
 
         assertThat(list).hasSize(2);
     }
@@ -129,7 +130,7 @@ class UserServiceTest {
     @DisplayName("전체 사용자 조회 성공 - 0명인 경우")
     void findAllEmpty() {
 
-        List<Users> list = userService.findAll();
+        List<User> list = userService.findAll();
 
         assertThat(list).isEmpty();
     }
@@ -138,11 +139,11 @@ class UserServiceTest {
     @DisplayName("사용자 정보 수정 성공 - 이름, 비밀번호, 이메일 변경")
     void updateSuccess_AllChange() {
 
-        Users saved = userService.save(new UserCreateRequest("박석훈", "password123", "update@test.com"));
+        User saved = userService.save(new UserCreateRequest("박석훈", "password123", "update@test.com"));
 
         UserUpdateRequest req = new UserUpdateRequest("이름변경", "newpassword123", "newemail@test.com");
 
-        Users updated = userService.update(saved.getId(), req);
+        User updated = userService.update(saved.getId(), req);
 
         assertThat(updated.getUsername()).isEqualTo("이름변경");
         assertThat(updated.getEmail()).isEqualTo("newemail@test.com");
@@ -153,13 +154,13 @@ class UserServiceTest {
     @DisplayName("사용자 정보 수정 성공 - 일부 필드만 수정")
     void updateSuccess_Partial() {
 
-        Users saved = userService.save(new UserCreateRequest(
+        User saved = userService.save(new UserCreateRequest(
                 "박석훈", "password123", "tjrgns@test.com"));
 
         //null 값은 변경하지 않음
         UserUpdateRequest req = new UserUpdateRequest(null, "newpassword123", null);
 
-        Users updated = userService.update(saved.getId(), req);
+        User updated = userService.update(saved.getId(), req);
 
         assertThat(updated.getUsername()).isEqualTo("박석훈");
         assertThat(updated.getEmail()).isEqualTo("tjrgns@test.com");
@@ -183,7 +184,7 @@ class UserServiceTest {
     @DisplayName("사용자 수정 실패 - 비밀번호 8자 미만")
     void updateFail_InvalidPassword() {
 
-        Users saved = userService.save(new UserCreateRequest(
+        User saved = userService.save(new UserCreateRequest(
                 "홍길동", "password123", "short@test.com"
         ));
 
@@ -206,7 +207,7 @@ class UserServiceTest {
         ));
 
         // User2
-        Users user2 = userService.save(new UserCreateRequest(
+        User user2 = userService.save(new UserCreateRequest(
                 "유저2", "password123", "dup2@test.com"
         ));
 

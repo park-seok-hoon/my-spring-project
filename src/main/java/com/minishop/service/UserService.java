@@ -1,10 +1,12 @@
 package com.minishop.service;
 
-import com.minishop.domain.Users;
+
+import com.minishop.domain.user.User;
 import com.minishop.dto.item.UserCreateRequest;
 import com.minishop.dto.item.UserUpdateRequest;
 import com.minishop.exception.AppException;
 import com.minishop.exception.ErrorCode;
+
 import com.minishop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,11 +25,9 @@ public class UserService {
     /**
      * 사용자 등록
      */
-
-    public Users save(UserCreateRequest request) {
-
+    public User save(UserCreateRequest request) {
         // 이메일 중복 검증
-        Users existingUser = userRepository.findByEmail(request.getEmail());
+        User existingUser = userRepository.findByEmail(request.getEmail());
 
         if (existingUser != null) {
             throw new AppException(ErrorCode.DUPLICATE_EMAIL);
@@ -38,10 +39,10 @@ public class UserService {
         }
 
         // DTO → Entity 변환
-        Users user = new Users();
-        user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword());
-        user.setEmail(request.getEmail());
+        User user = new User();
+        user.changeUsername(request.getUsername());
+        user.changePassword(request.getPassword());
+        user.changeEmail(request.getEmail());
 
         return userRepository.save(user);
     }
@@ -60,18 +61,18 @@ public class UserService {
     /**
      * 단일 사용자 조회
      */
-    public Users findById(Long id) {
-        Users user = userRepository.findById(id);
-        if (user == null) {
+    public User findById(Long id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
-        return user;
+        return user.orElse(null);
     }
 
     /**
      * 전체 사용자 조회
      */
-    public List<Users> findAll() {
+    public List<User> findAll() {
         return userRepository.findAll();
     }
 
@@ -79,11 +80,11 @@ public class UserService {
      * 사용자 정보 수정
      */
     @Transactional
-    public Users update(Long id, UserUpdateRequest request) {
+    public User update(Long id, UserUpdateRequest request) {
 
         // 기존 사용자 존재 여부 확인
-        Users existingUser = userRepository.findById(id);
-        if (existingUser == null) {
+        Optional<User> existingUser = userRepository.findById(id);
+        if (existingUser.isEmpty()) {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
 
@@ -92,7 +93,7 @@ public class UserService {
 
         // 변경된 필드만 업데이트
         if (request.getUsername() != null) {
-            existingUser.setUsername(request.getUsername());
+            existingUser.get().changeUsername(request.getUsername());
         }
 
         if (request.getPassword() != null && request.getPassword().length() < 8) {
@@ -100,11 +101,11 @@ public class UserService {
         }
 
         if (request.getPassword() != null) {
-            existingUser.setPassword(request.getPassword());
+            existingUser.get().changePassword(request.getPassword());
         }
 
         if (request.getEmail() != null) {
-            Users duplicate = userRepository.findByEmail(request.getEmail());
+            User duplicate = userRepository.findByEmail(request.getEmail());
 
             // 이메일이 존재하고, 그게 "나 자신이 아닌 다른 사용자"라면 중복 예외
             if (duplicate != null && !Objects.equals(duplicate.getId(), id)) {
@@ -112,10 +113,9 @@ public class UserService {
             }
 
             // 그렇지 않으면 (즉, 내 이메일 그대로거나 새 이메일이면) 정상 처리
-            existingUser.setEmail(request.getEmail());
+            existingUser.get().changeEmail(request.getEmail());
         }
 
-
-        return userRepository.update(id, existingUser);
+        return userRepository.update(id, existingUser.orElse(null));
     }
 }
