@@ -91,7 +91,7 @@ class UserServiceTest {
 
         assertThatThrownBy(() -> userService.delete(99999L))
                 .isInstanceOf(AppException.class)
-                .hasMessageContaining("삭제할 유저가 존재하지 않습니다.");
+                .hasMessageContaining("해당 사용자를 찾을 수 없습니다.");
     }
 
     @Test
