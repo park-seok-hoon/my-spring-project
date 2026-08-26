@@ -52,7 +52,7 @@ public class ItemService {
             throw new AppException(ErrorCode.ITEM_NOT_FOUND, "삭제할 상품(id=" + id + ")이 없습니다.");
         }
     }
-    
+
     @Transactional
     public Item findById(Long id) {
         return itemRepository.findById(id)
@@ -69,43 +69,31 @@ public class ItemService {
 
     @Transactional
     public Item update(Long id, ItemUpdateRequest request) {
-        // (1) 존재하지 않는 상품인지 체크
         Item existedItem = itemRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ITEM_NOT_FOUND, "수정할 상품(id=" + id + ")이 없습니다."));
 
-
-        // (2) 가격 검증
         if (request.getPrice() <= 0) {
             throw new AppException(ErrorCode.INVALID_PRICE, "수정할 가격: " + request.getPrice());
         }
 
-        // (3) 재고 검증
         if (request.getStockQuantity() < 0) {
             throw new AppException(ErrorCode.INVALID_STOCK, "수정할 재고 수량: " + request.getStockQuantity());
         }
 
-        // (4) 상품명 중복 확인 (단, 이름이 변경될 때만 검사)
         if (!existedItem.getName().equals(request.getName()) &&
                 itemRepository.findByName(request.getName()) != null) {
             throw new AppException(ErrorCode.DUPLICATE_ITEM, "상품명: " + request.getName());
         }
 
-        //유효성 검사+예외 처리 완료 후 수정
         Item updateItem = new Item();
         updateItem.setName(request.getName());
         updateItem.setPrice(request.getPrice());
         updateItem.setStockQuantity(request.getStockQuantity());
 
-        //DB 업데이트 진행
-        int result =itemRepository.update(id,updateItem);
+        // int result 체크 로직 삭제 - update()가 실패 시 이미 자체적으로 예외를 던짐
+        itemRepository.update(id, updateItem);
 
-        if(result==0){
-            throw new AppException(ErrorCode.DATABASE_ERROR);
-        }
-
-        // 모든 검증 통과 → DB 업데이트 진행
         return itemRepository.findById(id)
-                .orElseThrow(() ->
-                        new AppException(ErrorCode.ITEM_NOT_FOUND, "수정 후 상품을 찾을 수 없습니다."));
+                .orElseThrow(() -> new AppException(ErrorCode.ITEM_NOT_FOUND, "수정 후 상품을 찾을 수 없습니다."));
     }
 }

@@ -11,7 +11,7 @@ public interface ItemRepository {
     int delete(Long id);
     List<Item> findAll();
     Item findByName(String itemName);
-    int update(Long id, Item updateItem);
+    void update(Long id, Item updateItem);
     void deleteAll();
 
 

@@ -86,7 +86,7 @@ class ItemServiceTest {
 
         assertThatThrownBy(() -> itemService.delete(99999L))
                 .isInstanceOf(AppException.class)
-                .hasMessageContaining("삭제할 상품");
+                .hasMessageContaining("상품을 찾을 수 없습니다.");
     }
 
     @Test

@@ -55,17 +55,14 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     @Override
-    public int update(Long id, Item updateItem) {
-        Item dbItem = em.find(Item.class,id);
-        if(dbItem==null){
-            return 0;
+    public void update(Long id, Item updateItem) {
+        Item dbItem = em.find(Item.class, id);
+        if (dbItem == null) {
+            throw new AppException(ErrorCode.ITEM_NOT_FOUND, "수정할 상품(id=" + id + ")이 없습니다.");
         }
-
         dbItem.setName(updateItem.getName());
         dbItem.setPrice(updateItem.getPrice());
         dbItem.setStockQuantity(updateItem.getStockQuantity());
-
-        return 0;
     }
 
     @Override
