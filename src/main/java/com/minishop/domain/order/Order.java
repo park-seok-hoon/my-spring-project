@@ -20,7 +20,7 @@ public class Order {
     private Long id;                // 주문 ID   (Orders PK)
 
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User user;
 

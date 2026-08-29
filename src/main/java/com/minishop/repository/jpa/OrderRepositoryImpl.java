@@ -28,10 +28,12 @@ public class OrderRepositoryImpl implements OrderRepository {
         return Optional.ofNullable(order);
     }
 
-    @Override
     public List<Order> findAll() {
         return em.createQuery(
-                "select o from Order o",
+                "select distinct o from Order o " +
+                        "join fetch o.user " +
+                        "join fetch o.orderItems oi " +
+                        "join fetch oi.item",
                 Order.class
         ).getResultList();
     }
