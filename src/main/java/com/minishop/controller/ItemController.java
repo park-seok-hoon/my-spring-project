@@ -2,7 +2,9 @@ package com.minishop.controller;
 
 import com.minishop.domain.item.Item;
 import com.minishop.dto.item.ItemCreateRequest;
+import com.minishop.dto.item.ItemResponse;
 import com.minishop.dto.item.ItemUpdateRequest;
+import com.minishop.repository.ItemRepository;
 import com.minishop.response.ApiResponse;
 import com.minishop.service.ItemService;
 import jakarta.validation.Valid;
@@ -29,9 +31,9 @@ public class ItemController {
      * GlobalExceptionHandler에서 처리됨.
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<Item>> createItem(@Valid @RequestBody ItemCreateRequest request) {
+    public ResponseEntity<ApiResponse<ItemResponse>> createItem(@Valid @RequestBody ItemCreateRequest request) {
         Item newItem = itemService.save(request);
-        return ResponseEntity.ok(ApiResponse.success("상품 등록 성공", newItem));
+        return ResponseEntity.ok(ApiResponse.success("상품 등록 성공", ItemResponse.from(newItem)));
     }
 
     /**
@@ -39,27 +41,28 @@ public class ItemController {
      * 상품이 없으면 AppException에서 ITEM_NOT_FOUND 발생
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Item>>> getAllItems() {
+    public ResponseEntity<ApiResponse<List<ItemResponse>>> getAllItems() {
         List<Item> items = itemService.findAll();
-        return ResponseEntity.ok(ApiResponse.success("상품 목록 조회 성공",items)); // 예외 발생 시 GlobalExceptionHandler에서 처리
+        List<ItemResponse> responses = items.stream().map(ItemResponse::from).toList();
+        return ResponseEntity.ok(ApiResponse.success("상품 목록 조회 성공",responses)); // 예외 발생 시 GlobalExceptionHandler에서 처리
     }
 
     /**
      * ✅ 상품 단건 조회 (Read One)
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Item>> getItem(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ItemResponse>> getItem(@PathVariable Long id) {
         Item item = itemService.findById(id);
-        return ResponseEntity.ok(ApiResponse.success("상품 조회 성공",item));
+        return ResponseEntity.ok(ApiResponse.success("상품 조회 성공", ItemResponse.from(item)));
     }
 
     /**
      * ✅ 상품 수정 (Update)
      */
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Item>> updateItem(@PathVariable Long id, @Valid @RequestBody ItemUpdateRequest updateRequest) {
+    public ResponseEntity<ApiResponse<ItemResponse>> updateItem(@PathVariable Long id, @Valid @RequestBody ItemUpdateRequest updateRequest) {
         Item updatedItem= itemService.update(id, updateRequest);
-        return ResponseEntity.ok(ApiResponse.success("상품이 성공적으로 수정되었습니다.", updatedItem));
+        return ResponseEntity.ok(ApiResponse.success("상품이 성공적으로 수정되었습니다.", ItemResponse.from(updatedItem)));
     }
 
     /**
@@ -71,11 +74,5 @@ public class ItemController {
         return ResponseEntity.ok(ApiResponse.success("상품 삭제 성공",null));
     }
 
-    /**
-     * ✅ 테스트용 예외 (임의 호출)
-     */
-    @GetMapping("/error-ex")
-    public void errorEx() {
-        throw new RuntimeException("테스트용 예외 발생!");
-    }
+
 }

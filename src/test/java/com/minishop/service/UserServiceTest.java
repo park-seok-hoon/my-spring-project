@@ -2,10 +2,9 @@ package com.minishop.service;
 
 
 import com.minishop.domain.user.User;
-import com.minishop.dto.item.UserCreateRequest;
-import com.minishop.dto.item.UserUpdateRequest;
+import com.minishop.dto.user.UserCreateRequest;
+import com.minishop.dto.user.UserUpdateRequest;
 import com.minishop.exception.AppException;
-import com.minishop.exception.ErrorCode;
 import com.minishop.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
