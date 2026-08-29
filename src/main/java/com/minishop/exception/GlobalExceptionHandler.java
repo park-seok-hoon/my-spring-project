@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -71,6 +72,23 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(
                         "INTERNAL_SERVER_ERROR",
                         "서버 내부 오류가 발생했습니다.",
+                        request.getRequestURI()
+                ));
+    }
+
+    //요청 누락/파싱 실패 시 400
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMessageNotReadable(
+            HttpMessageNotReadableException e,
+            HttpServletRequest request) {
+
+        log.warn("[HttpMessageNotReadableException] {}", e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(
+                        "BAD_REQUEST",
+                        "요청 본문이 없거나 형식이 올바르지 않습니다.",
                         request.getRequestURI()
                 ));
     }
