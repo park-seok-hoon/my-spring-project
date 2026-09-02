@@ -639,11 +639,14 @@ git checkout feature/jpa-refactoring
 이 프로젝트는 PostgreSQL을 사용합니다. 로컬에 PostgreSQL이 설치되어 있어야 하며,
 환경변수를 별도로 설정하지 않으면 아래 기본값으로 접속을 시도합니다.
 
+​DB 접속 정보는 소스코드에 하드코딩되어 있지 않고, 환경변수로만 주입받습니다.
+실행 전 반드시 아래 환경변수를 설정해야 합니다.
+
 ​```
 DB 이름  : minishopJPA
 Host:Port: localhost:5432
 User     : postgres
-Password : (application.yml 기본값 참고, 실제 운영 값은 환경변수로 재정의 권장)
+Password : (환경변수 SPRING_DATASOURCE_PASSWORD로 직접 설정, 기본값 없음)
 ​```
 
 필요 시 환경변수로 접속 정보를 덮어쓸 수 있습니다.
@@ -675,9 +678,9 @@ gradlew.bat bootRun
 ​```yaml
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/minishopJPA}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:1111}
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -759,6 +762,7 @@ Dockerfile은 Multi-stage build로 구성되어 있어(빌드 스테이지: JDK,
 | **14** | 2026.08.26 | Docker 배포 시 DB 연결 실패(Connection refused) → 환경변수 기반 설정으로 해결 |
 | **15** | 2026.08.26 | 요청 바디 누락 시 400이 아닌 500으로 응답 → 예외 핸들러 세분화 |
 | **16** | 2026.08.26 | Dockerfile 단일 스테이지 → Multi-stage build로 이미지 경량화 |
+| **17** | 2026.08.26 | application.yml에 DB 비밀번호 기본값이 하드코딩되어 있던 것 → 환경변수 필수화로 제거 |
 
 ---
 
@@ -1041,6 +1045,23 @@ Dockerfile은 Multi-stage build로 구성되어 있어(빌드 스테이지: JDK,
 
 ---
 
+## 17) application.yml에 DB 비밀번호 기본값이 하드코딩되어 있던 문제
+
+> **문제**
+> `application.yml`에서 `${SPRING_DATASOURCE_PASSWORD:1111}`처럼 환경변수의
+> 기본값(fallback)으로 실제 비밀번호가 소스코드에 하드코딩되어 있었고, 이 파일이
+> 그대로 GitHub 저장소에 커밋되어 있었음.
+>
+> **해결**
+> 비밀번호 항목에서 기본값을 제거하여 `${SPRING_DATASOURCE_PASSWORD}`로 변경,
+> 환경변수가 없으면 애플리케이션이 명확하게 실행 실패하도록 강제함.
+>
+> **배운 점**
+> "로컬 개발 편의를 위한 기본값"이라도 실제 비밀번호를 소스코드에 남기면 안 되며,
+> 민감정보는 기본값 없이 환경변수/시크릿 매니저로만 주입받는 것이 원칙이라는 것을 이해함.
+
+---
+
 # 📈 프로젝트를 통해 배운 점 (최종 정리)
 
 **[JPA 리팩토링 & 배포 과정에서]**
@@ -1050,6 +1071,7 @@ Dockerfile은 Multi-stage build로 구성되어 있어(빌드 스테이지: JDK,
 * 환경변수 기반 설정 분리(local vs 배포)의 필요성을 Docker 배포 중 DB 연결 실패를 겪으며 이해함
 * 예외를 종류별로 구분해서 처리해야 하는 이유를, "모든 예외를 500으로 처리하면 안 된다"는 실제 버그를 통해 체감함
 * Dockerfile의 multi-stage build가 단순 최적화가 아니라 "빌드 환경과 실행 환경의 책임을 분리하는 것"임을 이해하고, 실제 이미지 용량 감소(1.26GB → 371MB)로 확인함
+* 환경변수의 "기본값"이라도 실제 민감정보를 코드에 남기면 안 된다는 것을 직접 발견한 문제를 통해 이해함
 
 **[초기 MyBatis 기반 개발 과정에서]**
 * Controller는 얇게, Service가 핵심을 담당하는 실무 구조를 제대로 이해함
