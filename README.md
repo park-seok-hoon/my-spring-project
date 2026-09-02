@@ -939,6 +939,8 @@ logging.level.com.minishop.repository.mybatis=trace
 > `docker images`로 실제 용량을 비교한 결과, 이미지 용량이 1.26GB에서 371MB로
 > 약 70% 감소함.
 >
+> <img width="560" height="67" alt="docker-image-size-comparison" src="https://github.com/user-attachments/assets/ee325353-1a0e-41c0-bd57-fa2ff2eccd48" />
+>
 > **배운 점**
 > 컨테이너 이미지는 "빌드에 필요한 것"과 "실행에 필요한 것"이 다르며,
 > 이 둘을 분리하는 것이 배포 효율성에 직접적인 영향을 준다는 것을 이해함.
