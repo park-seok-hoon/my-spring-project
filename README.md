@@ -661,7 +661,11 @@ logging.level.com.minishop.repository.mybatis=trace
 | **9**  | 2025.11.24 | DTO 필요성 이해 → Entity 직접 노출 제거                    |
 | **10** | 2025.11.26 | 테스트 간 간섭 문제 → 테스트 DB 초기화로 해결                    |
 | **11** | 2025.11.27 | 테스트 시 DB 데이터 누적 문제 → @Transactional rollback 해결 |
-
+| **12** | 2026.08.26 | MyBatis → JPA 리팩토링 후 N+1 쿼리 문제 발견 및 fetch join으로 해결 |
+| **13** | 2026.08.26 | Controller가 Entity를 직접 반환하여 비밀번호 노출 위험 → DTO 계층 도입 |
+| **14** | 2026.08.26 | Docker 배포 시 DB 연결 실패(Connection refused) → 환경변수 기반 설정으로 해결 |
+| **15** | 2026.08.26 | 요청 바디 누락 시 400이 아닌 500으로 응답 → 예외 핸들러 세분화 |
+| **16** | 2026.08.26 | Dockerfile 단일 스테이지 → Multi-stage build로 이미지 경량화 |
 ---
 
 # 🔥 상세 개선 히스토리
@@ -834,6 +838,110 @@ logging.level.com.minishop.repository.mybatis=trace
 > 테스트에도 트랜잭션을 적용해야 “테스트를 마음껏 반복 가능”하다는 걸 알게 됨.
 
 ---
+
+## 12) MyBatis → JPA 리팩토링 후 N+1 쿼리 문제 발견
+
+> **배경**
+> MyBatis에서는 조인 쿼리를 직접 작성해야 하는 부담이 있어, 유지보수 관점에서
+> JPA가 어떤 이점이 있는지 확인하고자 Order/Item/User 도메인을 JPA로 리팩토링함.
+>
+> **문제**
+> 리팩토링 후 `spring.jpa.show-sql: true`로 쿼리 로그를 확인한 결과,
+> `Order.user`가 `@ManyToOne`의 기본 fetch 전략(EAGER)으로 설정되어 있었고,
+> `findAll()`이 fetch join 없이 `select o from Order o`만 실행하고 있었음.
+> 이로 인해 주문 100건 조회 시 이론상 최대 401회(Order 1 + User 100 + OrderItems 100 + Item 100+α)의
+> 쿼리가 발생할 수 있는 구조였음.
+>
+> **해결**
+> - `Order.user`를 명시적으로 `fetch = FetchType.LAZY`로 변경
+> - `OrderRepositoryImpl.findAll()`을 `join fetch`로 재작성하여 Order, User, OrderItems, Item을
+>   한 번의 쿼리로 조회하도록 변경
+> - 1:N 컬렉션을 fetch join할 때 발생하는 중복 로우 문제를 `distinct` 키워드로 해결
+>
+> **결과**
+> 수정 전/후 쿼리 로그를 비교한 결과, 주문 목록 조회 쿼리가 1회로 감소함.
+>
+> **배운 점**
+> JPA의 fetch 전략은 기본값을 그대로 두면 오히려 의도치 않은 쿼리를 유발할 수 있고,
+> `show-sql` 로그로 실제 쿼리 횟수를 직접 확인하는 습관이 필요하다는 것을 체감함.
+
+---
+
+## 13) Controller의 Entity 직접 반환으로 인한 비밀번호 노출 위험 발견
+
+> **문제**
+> JPA 리팩토링 이후 Controller가 `User`, `Order` 엔티티를 그대로 `ApiResponse`에 담아
+> 반환하고 있었음. `User` 엔티티에는 `password` 필드가 포함되어 있어, 어떤 API에서든
+> `User`가 직렬화되는 순간 비밀번호가 그대로 응답에 노출될 수 있는 구조였음.
+>
+> **해결**
+> - `ItemResponse`, `UserResponse`, `OrderResponse`, `OrderItemResponse` DTO(record)를 도입
+> - `UserResponse`는 `id`, `username`, `email`만 포함하고 `password`는 제외
+> - `OrderResponse`는 `User` 전체 대신 `userId`(Long)만 포함하여 불필요한 연관 데이터 노출을 차단
+> - Controller에서 Entity → DTO 변환 후 반환하도록 전체 API 수정
+> - `UserResponse`에 `password` 관련 필드가 포함되지 않았는지 리플렉션으로 검증하는
+>   회귀 방지 테스트 작성
+>
+> **결과**
+> 모든 API 응답에서 Entity 대신 DTO만 노출되도록 변경 완료, 단위 테스트로 검증.
+>
+> **배운 점**
+> "DTO가 왜 필요한가"를 이론으로만 알고 있었는데, 실제로 존재하는 보안 취약점을
+> 직접 찾아내면서 DTO 분리가 선택이 아니라 필수라는 것을 이해함.
+
+---
+
+## 14) Docker 배포 시 DB 연결 실패 (Connection refused)
+
+> **문제**
+> Render에 배포 후 `Connection refused` 에러 발생. 원인은 `application.yml`의
+> DB 접속 정보가 로컬 환경 기준으로 고정되어 있었던 것.
+>
+> **해결**
+> - `application.yml`의 `datasource` 설정을 환경변수 기반으로 변경
+>   (`${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/minishopJPA}` 형태로,
+>   로컬 실행 시 기본값을 쓰고 배포 환경에서는 Render의 환경변수를 우선 사용하도록 처리)
+> - Render 대시보드에 실제 DB 접속 정보를 환경변수로 등록
+>
+> **배운 점**
+> DB 접속 정보처럼 환경마다 달라지는 값은 코드에 고정하지 않고, 기본값과 함께
+> 환경변수로 오버라이드 가능하게 만들어야 배포 환경이 바뀌어도 코드 수정 없이 대응할 수 있음.
+
+---
+
+## 15) 요청 바디 누락 시 500으로 응답되던 문제
+
+> **문제**
+> `POST /orders`를 요청 바디 없이 호출했을 때 `HttpMessageNotReadableException`이
+> 발생했는데, `GlobalExceptionHandler`가 이를 구체적으로 처리하지 않고 catch-all
+> `Exception` 핸들러로 처리하면서 클라이언트 잘못(400)임에도 500(서버 오류)으로 응답함.
+>
+> **해결**
+> `HttpMessageNotReadableException` 전용 핸들러를 추가하여 400 Bad Request로 응답하도록 수정.
+>
+> **배운 점**
+> 예외 처리를 "일단 다 잡아서 500으로 막는" 방식은 클라이언트 입장에서 원인 파악이
+> 불가능해짐. 예외 타입별로 적절한 HTTP 상태 코드를 매핑하는 게 API 설계의 기본이라는 것을 이해함.
+
+---
+
+## 16) Dockerfile Multi-stage build로 전환
+
+> **문제**
+> 기존 Dockerfile은 단일 스테이지로 구성되어, 최종 이미지에 JDK, Gradle,
+> 소스코드가 모두 포함되어 있었음.
+>
+> **해결**
+> 빌드 전용 스테이지(JDK)와 실행 전용 스테이지(JRE)를 분리하는 Multi-stage build로 전환.
+> 최종 이미지에는 실행에 필요한 jar 파일만 남도록 구성.
+>
+> **결과**
+> `docker images`로 실제 용량을 비교한 결과, 이미지 용량이 1.26GB에서 371MB로
+> 약 70% 감소함.
+>
+> **배운 점**
+> 컨테이너 이미지는 "빌드에 필요한 것"과 "실행에 필요한 것"이 다르며,
+> 이 둘을 분리하는 것이 배포 효율성에 직접적인 영향을 준다는 것을 이해함.
 
 # 📈 프로젝트를 통해 배운 점 (최종 정리)
 
