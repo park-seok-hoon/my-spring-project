@@ -1,7 +1,29 @@
 # 🛍️ Mini Shop — Spring Boot 실무형 CRUD & 주문 시스템
 
-Java 17 · Spring Boot · MyBatis 기반의 전자상거래 실무 프로젝트입니다.  
-단순 CRUD 수준이 아닌, **실무에서 꼭 필요한 예외 처리 · 재고 관리 · 트랜잭션 · DTO 적용 · JOIN 매핑 · 테스트 코드**까지 전부 경험하고 해결한 내용을 담고 있습니다.
+Java 17 · Spring Boot 기반의 전자상거래 실무 프로젝트입니다.
+MyBatis로 시작해 JPA로 리팩토링하는 과정을 거쳤고, Docker로 컨테이너화하여 배포까지 진행했습니다.
+단순 CRUD 수준이 아닌, **재고 관리 · 트랜잭션 · N+1 문제 해결 · DTO 기반 API 설계 · 배포 환경 구성**까지
+직접 부딪히며 해결한 과정을 담고 있습니다.
+
+---
+
+## 📑 목차
+
+- [프로젝트 개요](#-프로젝트-개요)
+- [핵심 트러블슈팅 요약](#-핵심-트러블슈팅-요약)
+- [프로젝트 목표](#-프로젝트-목표)
+- [주요 기능](#-주요-기능-요약)
+- [API 예시](#-api-예시-실제-요청응답-샘플)
+- [ERD](#️-erd-entity-relationship-diagram)
+- [아키텍처](#️-아키텍처-구조)
+- [참고: 초기 MyBatis 버전 JOIN 매핑](#-참고-초기-mybatis-버전-join-매핑-구조)
+- [디렉토리 구조](#-주요-디렉토리-구조)
+- [기술 스택](#️-기술-스택)
+- [실행 방법](#-실행-방법-run-guide)
+- [브랜치 구조](#-브랜치-구조)
+- [개선 히스토리 요약](#-개선-히스토리-요약-내가-직접-해결한-문제-중심)
+- [상세 개선 히스토리](#-상세-개선-히스토리)
+- [배운 점](#-프로젝트를-통해-배운-점-최종-정리)
 
 ---
 
@@ -13,8 +35,20 @@ Java 17 · Spring Boot · MyBatis 기반의 전자상거래 실무 프로젝트�
 - **기간**: 2025.10 ~ 2025.11 (개인 공부 & 포트폴리오용)
 - **GitHub**: [Mini Shop Repository](https://github.com/park-seok-hoon/my-spring-project)
 
-> 단순한 예제 코드가 아니라,  
-> “실제로 서비스된다고 가정하고 어떤 구조로 짤지”를 고민하며 만든 프로젝트입니다.
+> 단순한 예제 코드가 아니라,
+> "실제로 서비스된다고 가정하고 어떤 구조로 짤지"를 고민하며 만든 프로젝트입니다.
+
+---
+
+## 🔥 핵심 트러블슈팅 요약
+
+| 문제 | 해결 | 결과 |
+|---|---|---|
+| JPA 리팩토링 후 N+1 쿼리 발생 | fetch join + distinct 적용 | 쿼리 401회 → 1회 |
+| Entity 직접 노출로 비밀번호 유출 위험 | DTO 계층 도입 + 회귀 테스트 작성 | 응답에서 민감정보 완전 제거 |
+| Dockerfile 이미지 용량 과다 | Multi-stage build로 전환 | 1.26GB → 371MB (약 70%↓) |
+
+> 자세한 문제 상황과 해결 과정은 [상세 개선 히스토리](#-상세-개선-히스토리) 참고
 
 ---
 
@@ -25,7 +59,8 @@ Java 17 · Spring Boot · MyBatis 기반의 전자상거래 실무 프로젝트�
 - Controller는 최대한 얇게, Service에서 핵심 비즈니스 처리
 - 예외 처리 흐름 일원화 (AppException · ErrorCode · GlobalExceptionHandler)
 - 주문/취소/수정 시 재고·상태·트랜잭션을 모두 고려한 구조
-- MyBatis XML + JOIN + resultMap을 직접 설계해 보는 것
+- (초기) MyBatis XML + JOIN + resultMap을 직접 설계해 보는 것
+- (이후) JPA로 리팩토링하며 fetch 전략, N+1 문제, DTO 설계까지 직접 경험하는 것
 - 테스트 코드로 기능이 실제로 보장되도록 만드는 것
 
 ---
@@ -33,36 +68,40 @@ Java 17 · Spring Boot · MyBatis 기반의 전자상거래 실무 프로젝트�
 # 🚀 주요 기능 요약
 
 ## 📦 Item (상품)
-- 상품 등록 / 조회 / 전체 조회 / 수정 / 삭제  
-- 중복 상품명 검증  
-- 음수 가격, 음수 재고 예외 처리  
+- 상품 등록 / 조회 / 전체 조회 / 수정 / 삭제
+- 중복 상품명 검증
+- 음수 가격, 음수 재고 예외 처리
 
 ## 👤 User (회원)
-- 회원 가입 / 조회 / 수정 / 삭제  
-- 이메일 중복 검증  
-- 비밀번호 유효성 검사  
+- 회원 가입 / 조회 / 수정 / 삭제
+- 이메일 중복 검증
+- 비밀번호 유효성 검사
+- API 응답에는 DTO(`UserResponse`)만 노출, 비밀번호는 절대 포함하지 않음
 
 ## 🛒 Order (주문)
-- 주문 생성  
-- 주문 상품 유효성 검증  
-- 재고 차감  
-- 총 금액 계산  
-- 주문 취소  
-  - 재고 복구  
-  - 이미 취소된 주문 재취소 금지  
-- 주문 수정 (수량 변경 + 금액 재계산)  
-- 주문 전체 조회 / 단일 조회  
-- JOIN 기반으로 주문 + 주문상품 + 상품을 한 번에 가져오는 조회 구현  
+- 주문 생성
+- 주문 상품 유효성 검증
+- 재고 차감
+- 총 금액 계산
+- 주문 취소
+  - 재고 복구
+  - 이미 취소된 주문 재취소 금지
+- 주문 수정 (수량 변경 + 금액 재계산)
+- 주문 전체 조회 / 단일 조회
+- JPA fetch join으로 주문 + 주문상품 + 상품을 한 번의 쿼리로 가져오는 조회 구현 (N+1 방지)
 
 ## 🧪 Test
-- Item / User / Order 테스트 전체 구축  
-- 정상/실패 시나리오 30개 이상  
-- 테스트 간 간섭 제거 (deleteAll + @BeforeEach)  
-- @Transactional 적용으로 테스트 데이터 자동 rollback  
+- Item / User / Order 서비스 테스트 전체 구축
+- 정상/실패 시나리오 30개 이상
+- 테스트 간 간섭 제거 (deleteAll + @BeforeEach)
+- @Transactional 적용으로 테스트 데이터 자동 rollback
+- DTO 변환 로직(ItemResponse, UserResponse, OrderResponse 등) 단위 테스트
+- UserResponse에 비밀번호 필드가 포함되지 않았는지 검증하는 보안 회귀 테스트
 
 ---
 
 # 🔄 주문 처리 Flowchart (시각 버전)
+
 ```
                [주문 생성]
 클라이언트 요청
@@ -414,7 +453,7 @@ Items (1)
 - Users 1 : N Orders
 - Orders 1 : N OrderItems
 - Items 1 : N OrderItems
-이 구조를 기반으로 JOIN 조회 및 resultMap 설계가 이루어짐.
+이 구조를 기반으로 JPA 연관관계(`@ManyToOne`, `@OneToMany`)와 fetch join 조회가 설계됨.
 
 ---
 
@@ -423,24 +462,29 @@ Items (1)
 ```text
 API Request
     ↓
-Controller  — 요청/응답 (SRP 적용)
+Controller  — 요청/응답 (SRP 적용), Entity → DTO 변환
     ↓
 Service     — 비즈니스 로직 / 예외 처리 담당
     ↓
-Repository  — MyBatis Mapper 호출
+Repository  — JPA (Hibernate) 호출
     ↓
-MyBatis XML — 명시적 SQL (JOIN, association 매핑)
+JPQL / fetch join — N+1 방지를 위한 명시적 조회 쿼리
     ↓
-H2 / MySQL  — 실제 데이터 저장
+PostgreSQL  — 실제 데이터 저장
 ```
 
 ---
 
-# 🔗 MyBatis JOIN 매핑 구조
-## ✔ Order → OrderItems → Items JOIN 구조
+# 🔗 [참고: 초기 MyBatis 버전] JOIN 매핑 구조
+
+> 아래는 프로젝트 초기(MyBatis 기반) 당시의 JOIN 매핑 방식입니다.
+> 이후 JPA로 리팩토링하며 `fetch join` + `distinct` 방식으로 대체되었습니다.
+> 전환 배경과 발견한 문제(N+1)는 [상세 개선 히스토리 12번](#-상세-개선-히스토리)을 참고하세요.
+
+## ✔ Order → OrderItems → Items JOIN 구조 (MyBatis 당시)
 
 Orders.xml 내부 resultMap 예시(요약):
-```
+​```
 <resultMap id="OrderResultMap" type="Orders">
     <id property="id" column="order_id"/>
     <result property="userId" column="user_id"/>
@@ -456,59 +500,81 @@ Orders.xml 내부 resultMap 예시(요약):
 
     <association property="item" javaType="Items" resultMap="ItemsResultMap"/>
 </resultMap>
-```
-## ✔ 핵심 포인트
+
+​```
+
+## ✔ 당시 핵심 포인트
 - Orders → List<OrderItems> (1:N)
 - OrderItems → Items (N:1)
 - 하나의 JOIN 쿼리로 전체 구조 매핑
 - MyBatis에서 ORM처럼 작동하도록 직접 매핑 설계
 
+## ✔ JPA 전환 후 대응 방식
+
+​```java
+
+// OrderRepositoryImpl.java
+public List<Order> findAll() {
+    return em.createQuery(
+            "select distinct o from Order o " +
+            "join fetch o.user " +
+            "join fetch o.orderItems oi " +
+            "join fetch oi.item",
+            Order.class
+    ).getResultList();
+}
+​```
+
+MyBatis 시절에는 resultMap을 수동으로 설계해야 했던 JOIN 매핑을, JPA에서는 `join fetch` +
+`distinct`로 대체하면서 N+1 문제까지 함께 해결함.
+
+---
+
 ## 📁 주요 디렉토리 구조
 
-```text
+​```text
+
 src
 └─ main
    ├─ java
    │  └─ com.minishop
-   │      ├─ config
-   │      │   └─ MiniShopApplication    # Spring Boot Application 실행 클래스
+   │      ├─ MiniShopApplication        # Spring Boot Application 실행 클래스
    │      │
-   │      ├─ controller                 # REST API 계층 (요청/응답)
+   │      ├─ controller                 # REST API 계층 (요청/응답, DTO 변환)
    │      │   ├─ ItemController
    │      │   ├─ OrderController
    │      │   └─ UserController
    │      │
    │      ├─ domain                     # 엔티티 (DB 테이블과 1:1 매핑되는 도메인)
-   │      │   ├─ Items
-   │      │   ├─ OrderItems
-   │      │   ├─ Orders
-   │      │   └─ Users
+   │      │   ├─ item/Item
+   │      │   ├─ order/Order, OrderItem, OrderStatus
+   │      │   └─ user/User
    │      │
    │      ├─ dto                        # 요청(Request) / 응답(Response) DTO
    │      │   ├─ item
    │      │   │    ├─ ItemCreateRequest
-   │      │   │    └─ ItemUpdateRequest
+   │      │   │    ├─ ItemUpdateRequest
+   │      │   │    └─ ItemResponse
    │      │   ├─ user
    │      │   │    ├─ UserCreateRequest
-   │      │   │    └─ UserUpdateRequest
+   │      │   │    ├─ UserUpdateRequest
+   │      │   │    └─ UserResponse        # password 제외, id/username/email만 포함
    │      │   └─ order
    │      │        ├─ OrderCreateRequest
-   │      │        ├─ OrderItemRequest
    │      │        ├─ OrderModifyRequest
-   │      │        └─ OrderUpdateRequest
+   │      │        ├─ OrderUpdateRequest
+   │      │        ├─ OrderResponse       # user는 userId(Long)만 포함
+   │      │        └─ OrderItemResponse
    │      │
    │      ├─ exception                  # 공통 예외 처리 계층
    │      │   ├─ AppException           # 커스텀 런타임 예외
    │      │   ├─ ErrorCode              # 에러 코드 Enum
    │      │   ├─ ErrorResult            # 예외 응답 DTO
-   │      │   └─ GlobalExceptionHandler # 전역 예외 핸들러
+   │      │   └─ GlobalExceptionHandler # 전역 예외 핸들러 (400/500 세분화)
    │      │
-   │      ├─ repository                 # Repository 계층 (인터페이스)
-   │      │   └─ mybatis
-   │      │        ├─ ItemRepository
-   │      │        ├─ OrderItemsRepository
-   │      │        ├─ OrderRepository
-   │      │        └─ UserRepository
+   │      ├─ repository                 # Repository 계층
+   │      │   └─ jpa
+   │      │        └─ OrderRepositoryImpl  # JPQL + fetch join 기반 조회
    │      │
    │      ├─ response                   # 공통 API Response 구조
    │      │   ├─ ApiResponse
@@ -520,42 +586,41 @@ src
    │          └─ UserService
    │
    ├─ resources
-   │  ├─ mapper                         # MyBatis XML 매퍼 (SQL 존재)
-   │  │   ├─ ItemMapper.xml
-   │  │   ├─ OrderItemsMapper.xml
-   │  │   ├─ OrderMapper.xml
-   │  │   └─ UserMapper.xml
-   │  │
    │  ├─ static
    │  ├─ templates
-   │  └─ application.properties         # DB 설정 / 포트 설정 등
+   │  └─ application.yml                # PostgreSQL 연결 (환경변수 기반)
    │
    └─ test
       └─ java
          └─ com.minishop
+              ├─ dto                    # DTO 변환 단위 테스트
+              │   ├─ item/ItemResponseTest
+              │   ├─ user/UserResponseTest
+              │   └─ order/OrderItemResponseTest, OrderResponseTest
               └─ service                # 서비스 단위/통합 테스트
                   ├─ ItemServiceTest
                   ├─ OrderServiceTest
                   └─ UserServiceTest
 
-```
+​```
 
-→ 실제로 “Controller → Service → Repository → Mapper → XML → DB” 흐름이
+→ 실제로 "Controller → Service → Repository → JPA → PostgreSQL" 흐름이
 패키지 구조에서도 그대로 드러나도록 구성했습니다.
 
 ---
 
 # ⚙️ 기술 스택
 
-| 종류         | 기술                        |
-| ---------- | ------------------------- |
-| Language   | Java 17                   |
-| Framework  | Spring Boot 3.5.x         |
-| DB         | H2, MySQL                 |
-| ORM/Mapper | MyBatis (XML 기반)          |
-| Build      | Gradle                    |
-| Test       | JUnit5, AssertJ           |
-| 기타         | Lombok, Validation, Slf4j |
+| 종류         | 기술                                 |
+| ---------- | ---------------------------------- |
+| Language   | Java 17                            |
+| Framework  | Spring Boot 3.5.x                  |
+| DB         | PostgreSQL (로컬/배포 공통)              |
+| ORM        | JPA (Hibernate) — MyBatis에서 리팩토링   |
+| Build      | Gradle                             |
+| Test       | JUnit5, AssertJ                    |
+| 배포         | Docker (Multi-stage build), Render |
+| 기타         | Lombok, Validation, Slf4j          |
 
 ---
 
@@ -563,75 +628,102 @@ src
 
 ### 1) 프로젝트 클론
 
-```bash
+​```bash
 git clone https://github.com/park-seok-hoon/my-spring-project.git
 cd my-spring-project
-```
+git checkout feature/jpa-refactoring
+​```
 
-### 2) 실행 (Windows / macOS / Linux)
+### 2) 로컬 PostgreSQL 준비
+
+이 프로젝트는 PostgreSQL을 사용합니다. 로컬에 PostgreSQL이 설치되어 있어야 하며,
+환경변수를 별도로 설정하지 않으면 아래 기본값으로 접속을 시도합니다.
+
+​```
+DB 이름  : minishopJPA
+Host:Port: localhost:5432
+User     : postgres
+Password : (application.yml 기본값 참고, 실제 운영 값은 환경변수로 재정의 권장)
+​```
+
+필요 시 환경변수로 접속 정보를 덮어쓸 수 있습니다.
+
+​```bash
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/minishopJPA
+export SPRING_DATASOURCE_USERNAME=postgres
+export SPRING_DATASOURCE_PASSWORD=your_password
+​```
+
+### 3) 실행 (Windows / macOS / Linux)
 
 #### ✔ Windows
 
-```bash
+​```bash
 gradlew.bat bootRun
-```
+​```
 
 #### ✔ macOS / Linux
 
-```bash
+​```bash
 ./gradlew bootRun
-```
 
-### 3) H2 Console 접속 (Embedded 모드)
+​```
+---
 
-서버 실행 후 브라우저에서 아래 주소로 접속합니다:
+### 4) 현재 Spring Boot 설정 (application.yml)
 
-```
-http://localhost:8080/h2-console
-```
+​```yaml
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/minishopJPA}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:1111}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
-다음 값으로 입력 후 접속합니다:
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+​```
 
-```
-JDBC URL: jdbc:h2:~/minishop
-Driver   : org.h2.Driver
-User     : sa
-Password : (빈칸)
-```
-📌 **H2는 Embedded 모드로 자동 실행되므로, 따로 H2 서버를 켜거나 설치할 필요가 없습니다.**
-📌 Spring Boot가 실행될 때 `~/minishop.mv.db` 파일을 자동으로 생성/관리합니다.
+📌 `show-sql: true`로 설정되어 있어, 실제 실행되는 SQL을 콘솔에서 바로 확인할 수 있습니다.
+N+1 문제를 확인/검증할 때 이 로그를 직접 활용했습니다 (자세한 내용은 개선 히스토리 12번 참고).
+
+### 5) Docker로 실행 (선택)
+
+​```bash
+docker build -t minishop .
+docker run -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/minishopJPA \
+  -e SPRING_DATASOURCE_USERNAME=postgres \
+  -e SPRING_DATASOURCE_PASSWORD=your_password \
+  minishop
+​```
+
+Dockerfile은 Multi-stage build로 구성되어 있어(빌드 스테이지: JDK, 실행 스테이지: JRE),
+최종 이미지 용량이 single-stage 대비 약 70% 절감되었습니다 (1.26GB → 371MB).
 
 ---
 
-🛠 Spring Boot 설정(application.properties)
-```
-# H2 Console
-spring.h2.console.enabled=true
-spring.h2.console.path=/h2-console
-
-# Embedded H2 Database
-spring.datasource.url=jdbc:h2:~/minishop
-spring.datasource.driver-class-name=org.h2.Driver
-spring.datasource.username=sa
-spring.datasource.password=
-
-# MyBatis 설정
-mybatis.mapper-locations=classpath:mapper/**/*.xml
-mybatis.type-aliases-package=com.minishop.domain
-mybatis.configuration.map-underscore-to-camel-case=true
-logging.level.com.minishop.repository.mybatis=trace
-
-```
-
 👨‍💻 내가 맡은 역할 & 해결한 핵심 난관
 
-- MyBatis JOIN 매핑 실패 문제 직접 해결
+- (초기) MyBatis JOIN 매핑 실패 문제 직접 해결
+- (리팩토링) JPA 전환 후 N+1 쿼리 문제 발견 및 fetch join으로 해결
+- (리팩토링) Entity 직접 노출로 인한 비밀번호 유출 위험 발견 및 DTO 계층 도입
 - 상태 기반 주문 도메인(State Machine) 설계
 - 재고 조정 로직(차감/복구)의 일관성 유지
 - @Transactional 기반 주문/취소 원자성 보장
 - 테스트 독립성 100% 확보(deleteAll + rollback)
-- 예외 처리 흐름(AppException → ErrorCode → Handler) 완전 통합
-- SRP 원칙에 맞게 코드 리팩토링 컨트롤러는 요청 응답만
+- 예외 처리 흐름(AppException → ErrorCode → Handler) 완전 통합 및 세분화 (400/500 구분)
+- SRP 원칙에 맞게 코드 리팩토링, 컨트롤러는 요청/응답 + DTO 변환만 담당
+- Dockerfile Multi-stage build로 전환, 배포 이미지 경량화
 
 # 🌿 브랜치 구조
 
@@ -641,8 +733,9 @@ logging.level.com.minishop.repository.mybatis=trace
 | [`service-exception`](https://github.com/park-seok-hoon/my-spring-project/tree/service-exception)                         | 예외 처리 · 검증 책임을 Service로 이전 |
 | [`refactor/unified-api-response`](https://github.com/park-seok-hoon/my-spring-project/tree/refactor/unified-api-response) | API 응답 구조 통일 (ApiResponse) |
 | [`feature/order-module`](https://github.com/park-seok-hoon/my-spring-project/tree/feature/order-module)                   | 주문 전체 기능 구현 + 통합 테스트 구축    |
+| [`feature/jpa-refactoring`](https://github.com/park-seok-hoon/my-spring-project/tree/feature/jpa-refactoring)             | MyBatis → JPA 리팩토링, DTO 계층 도입, N+1 해결, Docker/배포 대응 |
 
-> 브랜치별로 “문제 → 해결” 흐름이 드러나도록 커밋과 README를 작성했습니다.
+> 브랜치별로 "문제 → 해결" 흐름이 드러나도록 커밋과 README를 작성했습니다.
 
 ---
 
@@ -666,6 +759,7 @@ logging.level.com.minishop.repository.mybatis=trace
 | **14** | 2026.08.26 | Docker 배포 시 DB 연결 실패(Connection refused) → 환경변수 기반 설정으로 해결 |
 | **15** | 2026.08.26 | 요청 바디 누락 시 400이 아닌 500으로 응답 → 예외 핸들러 세분화 |
 | **16** | 2026.08.26 | Dockerfile 단일 스테이지 → Multi-stage build로 이미지 경량화 |
+
 ---
 
 # 🔥 상세 개선 히스토리
@@ -712,7 +806,7 @@ logging.level.com.minishop.repository.mybatis=trace
 > * GlobalExceptionHandler 하나로 전부 관리
 >
 > **배운 점**
-> “응답 구조 통일”은 실무 품질을 크게 올리는 핵심이라는 걸 느낌.
+> "응답 구조 통일"은 실무 품질을 크게 올리는 핵심이라는 걸 느낌.
 
 ---
 
@@ -723,7 +817,7 @@ logging.level.com.minishop.repository.mybatis=trace
 >
 > **해결**
 >
-> * “존재할 수도, 안 할 수도 있는 값”에 Optional 사용
+> * "존재할 수도, 안 할 수도 있는 값"에 Optional 사용
 > * `orElseThrow()` 등 null-safe 코드 작성
 >
 > **배운 점**
@@ -742,7 +836,7 @@ logging.level.com.minishop.repository.mybatis=trace
 > * 실패 시 자동 rollback 처리
 >
 > **배운 점**
-> 트랜잭션이 “실패하면 이전 상태로 되돌린다”는 원리를 실전에서 확실히 이해함.
+> 트랜잭션이 "실패하면 이전 상태로 되돌린다"는 원리를 실전에서 확실히 이해함.
 
 ---
 
@@ -761,7 +855,7 @@ logging.level.com.minishop.repository.mybatis=trace
 > * MyBatis resultMap + association + collection 정확하게 설정
 >
 > **배운 점**
-> MyBatis JOIN 매핑은 자동이 아니라 “개발자가 직접 설계하는 것”이라는 걸 확실히 배움.
+> MyBatis JOIN 매핑은 자동이 아니라 "개발자가 직접 설계하는 것"이라는 걸 확실히 배움.
 
 ---
 
@@ -776,7 +870,7 @@ logging.level.com.minishop.repository.mybatis=trace
 > * 상태에 따라 수정/취소 제한
 >
 > **배운 점**
-> 주문은 CRUD가 아니라 “상태 기반(Stateful) 도메인”이라는 것을 이해함.
+> 주문은 CRUD가 아니라 "상태 기반(Stateful) 도메인"이라는 것을 이해함.
 
 ---
 
@@ -835,7 +929,7 @@ logging.level.com.minishop.repository.mybatis=trace
 > * 테스트 끝나면 자동 rollback
 >
 > **배운 점**
-> 테스트에도 트랜잭션을 적용해야 “테스트를 마음껏 반복 가능”하다는 걸 알게 됨.
+> 테스트에도 트랜잭션을 적용해야 "테스트를 마음껏 반복 가능"하다는 걸 알게 됨.
 
 ---
 
@@ -945,19 +1039,23 @@ logging.level.com.minishop.repository.mybatis=trace
 > 컨테이너 이미지는 "빌드에 필요한 것"과 "실행에 필요한 것"이 다르며,
 > 이 둘을 분리하는 것이 배포 효율성에 직접적인 영향을 준다는 것을 이해함.
 
-# 📈 프로젝트를 통해 배운 점 (최종 정리)
-
-* Controller는 얇게, Service가 핵심을 담당하는 실무 구조를 제대로 이해함
-* 예외 처리 흐름 (AppException → ErrorCode → Global Handler) 완전히 체득
-* MyBatis JOIN, nested resultMap, association/collection 매핑 능력 향상
-* 상태 기반 주문 도메인의 흐름을 실제로 구현하며 실무 감각 습득
-* 트랜잭션 rollback 개념을 단순 이론이 아닌 실제 상황에서 체감
-* DTO가 왜 필요한지, 어떻게 API 안정성과 보안을 높이는지 명확히 이해
-* 통합 테스트에서 “DB 초기화 + rollback”의 필요성을 경험적으로 학습
-* 단순 CRUD가 아니라 실제 쇼핑몰 주문/재고 구조를 모델링해보며 실전 감각 확립
-
-```
-
 ---
 
+# 📈 프로젝트를 통해 배운 점 (최종 정리)
 
+**[JPA 리팩토링 & 배포 과정에서]**
+* JPA의 fetch 전략(EAGER/LAZY) 기본값이 실제로 어떤 쿼리를 발생시키는지 로그로 직접 확인하며 N+1 문제를 체감함
+* fetch join과 distinct의 필요성을, "왜 필요한지" 이론이 아니라 실제 쿼리 개수 변화(401회 → 1회)로 검증하며 이해함
+* Entity를 API 응답에 그대로 노출하면 안 되는 이유를, DTO 이론이 아니라 실제 비밀번호 노출 가능성을 직접 발견하면서 체감함
+* 환경변수 기반 설정 분리(local vs 배포)의 필요성을 Docker 배포 중 DB 연결 실패를 겪으며 이해함
+* 예외를 종류별로 구분해서 처리해야 하는 이유를, "모든 예외를 500으로 처리하면 안 된다"는 실제 버그를 통해 체감함
+* Dockerfile의 multi-stage build가 단순 최적화가 아니라 "빌드 환경과 실행 환경의 책임을 분리하는 것"임을 이해하고, 실제 이미지 용량 감소(1.26GB → 371MB)로 확인함
+
+**[초기 MyBatis 기반 개발 과정에서]**
+* Controller는 얇게, Service가 핵심을 담당하는 실무 구조를 제대로 이해함
+* 예외 처리 흐름 (AppException → ErrorCode → Global Handler) 완전히 체득
+* MyBatis JOIN, nested resultMap, association/collection 매핑 능력 향상 (이후 JPA로 리팩토링)
+* 상태 기반 주문 도메인의 흐름을 실제로 구현하며 실무 감각 습득
+* 트랜잭션 rollback 개념을 단순 이론이 아닌 실제 상황에서 체감
+* 통합 테스트에서 "DB 초기화 + rollback"의 필요성을 경험적으로 학습
+* 단순 CRUD가 아니라 실제 쇼핑몰 주문/재고 구조를 모델링해보며 실전 감각 확립
